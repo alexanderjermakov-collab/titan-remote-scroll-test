@@ -3,7 +3,6 @@
 
   var DEFAULT_LANGUAGE = "en";
   var LIVE_PORTAL_HOST = "data.umc-poland.com";
-  var MANUAL_ROOT = "https://data.umc-poland.com/im/";
   var SUPPORTED_LANGUAGES = {
     bg: true, ca: true, cs: true, da: true, de: true, el: true, en: true,
     es: true, et: true, fi: true, fr: true, hr: true, hu: true, it: true,
@@ -58,22 +57,16 @@
   }
 
   function chooseManualVersion(info) {
-    var capability = (info && info.Capability) || {};
-    var product = (info && info.Product) || {};
-    var platform = String(product.platform || "");
-
-    if (capability.supportUHD === true) return "titan1";
-    if (capability.supportUHD === false && capability.supportFHD === true) return "titan2";
-    if (/(^|[^a-z0-9])(2k|fhd|hd)([^a-z0-9]|$)/i.test(platform)) return "titan2";
-
-    // Keep the established 4K route when the device cannot report a resolution.
-    return "titan1";
+    // This portal copy is based on the official Titan portal whose e-Manual is titan101.
+    // titan1 and titan2 are Portal entry points, not e-Manual pages.
+    return "titan101";
   }
 
   function updateInstructionManual(language, version) {
     var manual = document.getElementById("instructionmanual");
     if (!manual) return null;
-    var url = MANUAL_ROOT + version + "/?lang=" + encodeURIComponent(language);
+    var manualLanguage = language === "pt-pt" ? "pt" : language;
+    var url = new URL("../manual/" + version + "/" + encodeURIComponent(manualLanguage) + "/", window.location.href).toString();
     manual.setAttribute("href", url);
     manual.setAttribute("hreflang", language);
     return url;

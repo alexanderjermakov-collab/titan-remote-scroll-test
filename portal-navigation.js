@@ -22,7 +22,8 @@
     if (key === "ArrowDown" || key === "Down" || physical === "ArrowDown" || code === 40 || code === 20) return "down";
     if (key === "ArrowLeft" || key === "Left" || physical === "ArrowLeft" || code === 37 || code === 21) return "left";
     if (key === "ArrowRight" || key === "Right" || physical === "ArrowRight" || code === 39 || code === 22) return "right";
-    if (key === "Enter" || key === "Select" || key === "Accept" || physical === "Enter" || physical === "NumpadEnter" || code === 13 || code === 23 || code === 66) return "ok";
+    if (key === "Enter" || key === "OK" || key === "Select" || key === "Accept" || physical === "Enter" || physical === "NumpadEnter" || code === 13 || code === 23 || code === 66) return "ok";
+    if (key === "Back" || key === "BrowserBack" || key === "GoBack" || key === "Escape" || physical === "BrowserBack" || physical === "Escape" || code === 4 || code === 27 || code === 461 || code === 10009) return "back";
     if (key === "PageUp" || code === 33 || code === 92) return "page-up";
     if (key === "PageDown" || code === 34 || code === 93) return "page-down";
     if (key === "Home" || code === 36 || code === 3) return "home";
@@ -131,8 +132,16 @@
     if (!current || current === document.body) {
       var items = focusableElements();
       if (!items.length) return false;
-      current = items[0];
+      current = document.getElementById("instructionmanual") || items[0];
       current.focus({ preventScroll: true });
+    }
+
+    var tagName = String(current.tagName || "").toLowerCase();
+    var isActionable = tagName === "a" || tagName === "button" || tagName === "select" ||
+      tagName === "input" || current.getAttribute("role") === "button";
+    if (!isActionable && typeof current.querySelector === "function") {
+      var nested = current.querySelector("a[href], button:not([disabled]), [role='button'], input:not([disabled])");
+      if (nested && isVisible(nested)) current = nested;
     }
 
     if (String(current.tagName || "").toLowerCase() === "select") {
@@ -151,6 +160,28 @@
     return false;
   }
 
+  function handleBack() {
+    var modal = document.getElementById("modal");
+    if (isVisible(modal)) {
+      var close = modal.querySelector(".close, [data-dismiss='modal'], [aria-label*='close' i]");
+      if (close && typeof close.click === "function") {
+        close.click();
+        return true;
+      }
+    }
+
+    if (window.history.length > 1) {
+      window.history.back();
+      return true;
+    }
+
+    if (window.SharpLifePortalBackTarget) {
+      window.location.assign(window.SharpLifePortalBackTarget);
+      return true;
+    }
+    return false;
+  }
+
   function handleKeydown(event) {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     var command = commandFor(event);
@@ -160,7 +191,9 @@
     var activeName = String((active && active.tagName) || "").toLowerCase();
     var handled = false;
 
-    if (activeName === "select" && (command === "up" || command === "down")) {
+    if (command === "back") {
+      handled = handleBack();
+    } else if (activeName === "select" && (command === "up" || command === "down")) {
       handled = changeSelect(active, command);
     } else if (command === "ok") {
       handled = activateCurrent();
