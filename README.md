@@ -1,10 +1,13 @@
-# Titan remote scrolling test
+# Sharp Life Portal — Titan OS multilingual mirror
 
-Test copy of the Sharp Life Portal remote-control description page.
+Static test copy of Sharp Life Portal version 7 for Titan OS televisions.
 
-The page adds a capturing `keydown` handler that maps the remote control's
-UP and DOWN keys to vertical document scrolling. It is intended for testing
-on a Sharp TitanOS television.
+- 28 localized portal pages from the public source
+- automatic language selection through Titan SDK DeviceInfo
+- compatibility aliases including `sp` → `es`
+- Titan SDK text-to-speech support for focusable portal items
+- localized images, styles and scripts supplied with the source capture
 
-Original page:
-https://data.umc-poland.com/android-com/en-p05-titan-remote-control/en-p05-c01-titan-remote-control-parts-description/
+Source: https://data.umc-poland.com/sharp-smart-life-portal-ver7/
+
+Retrieved: 2026-10-04

@@ -13,7 +13,7 @@
 
   function normalizeLanguage(value) {
     var raw = String(value || "").trim().toLowerCase().replace(/_/g, "-");
-    var aliases = { cz: "cs", dk: "da", gr: "el", nb: "no", nn: "no", ua: "uk" };
+    var aliases = { cz: "cs", dk: "da", gr: "el", nb: "no", nn: "no", sp: "es", ua: "uk" };
 
     if (aliases[raw]) raw = aliases[raw];
     if (raw.indexOf("pt-pt") === 0) return "pt-pt";
@@ -62,12 +62,12 @@
     var product = (info && info.Product) || {};
     var platform = String(product.platform || "");
 
-    if (capability.supportUHD === true) return "titan1";
-    if (capability.supportUHD === false && capability.supportFHD === true) return "titan2";
-    if (/(^|[^a-z0-9])(2k|fhd|hd)([^a-z0-9]|$)/i.test(platform)) return "titan2";
+    if (capability.supportUHD === true) return "titan2";
+    if (capability.supportUHD === false && capability.supportFHD === true) return "titan1";
+    if (/(^|[^a-z0-9])(2k|fhd|hd)([^a-z0-9]|$)/i.test(platform)) return "titan1";
 
     // Keep the established 4K route when the device cannot report a resolution.
-    return "titan1";
+    return "titan2";
   }
 
   function updateInstructionManual(language, version) {
@@ -80,13 +80,22 @@
   }
 
   function redirectToLocalizedPortal(language) {
-    if (window.location.hostname !== LIVE_PORTAL_HOST) return false;
-
     var url = new URL(window.location.href);
-    var current = normalizeLanguage(url.searchParams.get("lang") || document.documentElement.lang);
-    if (current === language && url.searchParams.get("lang") === language) return false;
+    if (window.location.hostname === LIVE_PORTAL_HOST) {
+      var liveCurrent = normalizeLanguage(url.searchParams.get("lang") || document.documentElement.lang);
+      if (liveCurrent === language && url.searchParams.get("lang") === language) return false;
+      url.searchParams.set("lang", language);
+      window.location.replace(url.toString());
+      return true;
+    }
 
-    url.searchParams.set("lang", language);
+    var parts = url.pathname.split("/").filter(Boolean);
+    var current = parts.length ? parts[parts.length - 1].toLowerCase() : "";
+    if (SUPPORTED_LANGUAGES[current] && current === language) return false;
+    if (SUPPORTED_LANGUAGES[current]) parts.pop();
+    parts.push(language);
+    url.pathname = "/" + parts.join("/") + "/";
+    url.searchParams.delete("lang");
     window.location.replace(url.toString());
     return true;
   }
