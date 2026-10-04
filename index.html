@@ -36,18 +36,19 @@
     }
   </style>
   <script src="https://sdk.titanos.tv/sdk/sdk.js" type="text/javascript"></script>
+  <script src="./portal-navigation.js" type="text/javascript" defer></script>
   <script src="./titan-language-control.js" type="text/javascript" defer></script>
   <script src="./portal-accessibility.js" type="text/javascript" defer></script>
 </head>
 <body>
-  <main class="content" aria-labelledby="page-title">
+  <main aria-labelledby="page-title">
     <img class="brand" src="./assets/sharp_logo.svg" alt="Sharp">
     <h1 id="page-title">Select portal language</h1>
     <p class="intro">Choose the language for Sharp Life Portal. The selected ISO language code will be added to the URL.</p>
     <form action="./" method="get" id="language-form">
       <label for="language">Portal UI language</label>
       <div class="controls">
-        <select id="language" name="lang">
+        <select id="language" name="lang" aria-label="Portal UI language. English" autofocus>
           <option value="bg">Български</option><option value="ca">Català</option>
           <option value="cs">Čeština</option><option value="da">Dansk</option>
           <option value="de">Deutsch</option><option value="el">Ελληνικά</option>
@@ -83,6 +84,7 @@
         var url = new URL(window.location.href);
         url.search = ""; url.hash = ""; url.searchParams.set("lang", select.value);
         preview.textContent = url.toString();
+        select.setAttribute("aria-label", "Portal UI language. " + select.options[select.selectedIndex].text);
       }
       if (explicit && hasOption(explicit.toLowerCase())) select.value = explicit.toLowerCase();
       select.addEventListener("change", updatePreview);
