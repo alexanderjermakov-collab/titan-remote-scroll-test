@@ -62,12 +62,12 @@
     var product = (info && info.Product) || {};
     var platform = String(product.platform || "");
 
-    if (capability.supportUHD === true) return "titan2";
-    if (capability.supportUHD === false && capability.supportFHD === true) return "titan1";
-    if (/(^|[^a-z0-9])(2k|fhd|hd)([^a-z0-9]|$)/i.test(platform)) return "titan1";
+    if (capability.supportUHD === true) return "titan1";
+    if (capability.supportUHD === false && capability.supportFHD === true) return "titan2";
+    if (/(^|[^a-z0-9])(2k|fhd|hd)([^a-z0-9]|$)/i.test(platform)) return "titan2";
 
     // Keep the established 4K route when the device cannot report a resolution.
-    return "titan2";
+    return "titan1";
   }
 
   function updateInstructionManual(language, version) {
@@ -95,7 +95,7 @@
     if (SUPPORTED_LANGUAGES[current]) parts.pop();
     parts.push(language);
     url.pathname = "/" + parts.join("/") + "/";
-    url.searchParams.delete("lang");
+    if (url.searchParams.has("lang")) url.searchParams.set("lang", language);
     window.location.replace(url.toString());
     return true;
   }
@@ -109,6 +109,8 @@
   }
 
   async function initialize() {
+    var params = new URLSearchParams(window.location.search);
+    var requestedLanguage = params.get("lang");
     var result;
     try {
       result = await readDeviceInfo();
@@ -130,7 +132,7 @@
     }
 
     var product = result.info.Product || {};
-    var language = normalizeLanguage(product.language);
+    var language = normalizeLanguage(requestedLanguage || product.language);
     var manualVersion = chooseManualVersion(result.info);
     var manualUrl = updateInstructionManual(language, manualVersion);
     var detail = {
@@ -145,6 +147,7 @@
 
     publishState(detail);
     console.info("Sharp Life Portal: Titan device settings applied.", detail);
+    if (document.documentElement.hasAttribute("data-language-selector") && !requestedLanguage) return;
     redirectToLocalizedPortal(language);
   }
 
