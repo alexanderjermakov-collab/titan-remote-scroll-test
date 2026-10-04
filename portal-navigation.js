@@ -1,8 +1,7 @@
 (function () {
   "use strict";
 
-  var MIN_SCROLL_STEP = 180;
-  var VIEWPORT_STEP = 0.22;
+  var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
   var FOCUSABLE_SELECTOR = [
     "a[href]",
@@ -23,7 +22,7 @@
     if (key === "ArrowLeft" || key === "Left" || physical === "ArrowLeft" || code === 37 || code === 21) return "left";
     if (key === "ArrowRight" || key === "Right" || physical === "ArrowRight" || code === 39 || code === 22) return "right";
     if (key === "Enter" || key === "OK" || key === "Select" || key === "Accept" || physical === "Enter" || physical === "NumpadEnter" || code === 13 || code === 23 || code === 66) return "ok";
-    if (key === "Back" || key === "BrowserBack" || key === "GoBack" || key === "Escape" || physical === "BrowserBack" || physical === "Escape" || code === 4 || code === 27 || code === 461 || code === 10009) return "back";
+    if (key === "Back" || key === "Backspace" || key === "BrowserBack" || key === "GoBack" || key === "Escape" || physical === "BrowserBack" || physical === "Escape" || code === 4 || code === 8 || code === 27 || code === 461 || code === 10009) return "back";
     if (key === "PageUp" || code === 33 || code === 92) return "page-up";
     if (key === "PageDown" || code === 34 || code === 93) return "page-down";
     if (key === "Home" || code === 36 || code === 3) return "home";
@@ -61,6 +60,15 @@
     }
     if (typeof element.scrollBy === "function") element.scrollBy({ top: delta, left: 0, behavior: SMOOTH_SCROLL });
     else element.scrollTop += delta;
+  }
+
+  function lineScrollStep() {
+    var target = document.activeElement && document.activeElement !== document.body ? document.activeElement : document.body;
+    var style = window.getComputedStyle(target);
+    var lineHeight = parseFloat(style.lineHeight);
+    if (!isFinite(lineHeight)) lineHeight = parseFloat(style.fontSize) * 1.35;
+    if (!isFinite(lineHeight) || lineHeight < 16) lineHeight = DEFAULT_LINE_SCROLL_STEP;
+    return Math.round(Math.min(64, Math.max(24, lineHeight)));
   }
 
   function focusableElements() {
@@ -170,6 +178,11 @@
       }
     }
 
+    if (document.documentElement.hasAttribute("data-language-selector") ||
+        (document.getElementById("instructionmanual") && !document.documentElement.hasAttribute("data-sharp-manual"))) {
+      return exitPortal();
+    }
+
     if (window.history.length > 1) {
       window.history.back();
       return true;
@@ -180,6 +193,23 @@
       return true;
     }
     return false;
+  }
+
+  function exitPortal() {
+    try {
+      if (typeof window.SmartTvA_API !== "undefined" && typeof window.SmartTvA_API.exit === "function") {
+        window.SmartTvA_API.exit();
+        return true;
+      }
+    } catch (error) {
+      console.warn("Sharp Life Portal: native exit failed.", error);
+    }
+
+    try { window.close(); } catch (error) {}
+    window.setTimeout(function () {
+      if (!document.hidden && window.history.length > 1) window.history.go(-1);
+    }, 80);
+    return true;
   }
 
   function handleKeydown(event) {
@@ -200,12 +230,12 @@
     } else if (command === "left" || command === "right" || command === "up" || command === "down") {
       handled = moveFocus(command);
       if (!handled && (command === "up" || command === "down")) {
-        var step = Math.max(MIN_SCROLL_STEP, Math.round(window.innerHeight * VIEWPORT_STEP));
+        var step = lineScrollStep();
         scrollElement(activeScroller(), command === "up" ? -step : step);
         handled = true;
       }
     } else {
-      var viewport = Math.max(MIN_SCROLL_STEP, Math.round(window.innerHeight * 0.8));
+      var viewport = Math.max(DEFAULT_LINE_SCROLL_STEP, Math.round(window.innerHeight * 0.8));
       if (command === "page-up") scrollElement(activeScroller(), -viewport);
       else if (command === "page-down") scrollElement(activeScroller(), viewport);
       else if (command === "home") scrollElement(activeScroller(), -Number.MAX_SAFE_INTEGER);
