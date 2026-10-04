@@ -111,7 +111,8 @@
           Product: {
             brand: "unknown",
             country: "unknown",
-            language: new URLSearchParams(window.location.search).get("lang") || DEFAULT_LANGUAGE,
+            language: new URLSearchParams(window.location.search).get("lang") ||
+              document.documentElement.lang || navigator.language || DEFAULT_LANGUAGE,
             platform: "unknown"
           },
           Capability: {}
