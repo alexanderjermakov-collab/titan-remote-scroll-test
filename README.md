@@ -1,6 +1,6 @@
 # Sharp Life Portal — Titan OS multilingual mirror
 
-Sharp Life Portal test release 8.0.1 for Titan OS televisions, based on the public version 7 source.
+Sharp Life Portal test release 8.0.2 for Titan OS televisions, based on the public version 7 source.
 
 - 28 localized portal pages from the public source
 - a TV-friendly home page that writes the selected ISO language code to `?lang=`
