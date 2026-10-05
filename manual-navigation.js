@@ -14,13 +14,16 @@
   portalLanguage = String(portalLanguage).toLowerCase().replace(/_/g, "-");
   if (portalLanguage !== "pt-pt") portalLanguage = portalLanguage.split("-")[0];
 
-  var BACK_LABELS = {
-    bg: "Назад", ca: "Enrere", cs: "Zpět", da: "Tilbage", de: "Zurück",
-    el: "Πίσω", en: "Back", es: "Atrás", et: "Tagasi", fi: "Takaisin",
-    fr: "Retour", hr: "Natrag", hu: "Vissza", it: "Indietro", lt: "Atgal",
-    lv: "Atpakaļ", nl: "Terug", no: "Tilbake", pl: "Wstecz", pt: "Voltar",
-    ro: "Înapoi", ru: "Назад", sk: "Späť", sl: "Nazaj", sr: "Nazad",
-    sv: "Tillbaka", uk: "Назад"
+  var MANUAL_TITLE_LABELS = {
+    bg: "Ръководство за експлоатация", ca: "Manual d'instruccions", cs: "Návod k použití",
+    da: "Brugervejledning", de: "Bedienungsanleitung", el: "Εγχειρίδιο οδηγιών",
+    en: "Instruction Manual", es: "Manual de instrucciones", et: "Kasutusjuhend",
+    fi: "Käyttöopas", fr: "Manuel d'instructions", hr: "Priručnik s uputama",
+    hu: "Használati utasítás", it: "Manuale di istruzioni", lt: "Naudojimo instrukcija",
+    lv: "Lietošanas instrukcija", nl: "Gebruikshandleiding", no: "Brukerhåndbok",
+    pl: "Instrukcja obsługi", pt: "Manual de instruções", ro: "Manual de instrucțiuni",
+    ru: "Инструкция по эксплуатации", sk: "Návod na použitie", sl: "Navodila za uporabo",
+    sr: "Uputstvo za upotrebu", sv: "Bruksanvisning", uk: "Керівництво з експлуатації"
   };
 
   window.SharpLifePortalBackTarget = new URL(portalLanguage + "/?lang=" + encodeURIComponent(portalLanguage), portalRoot).toString();
@@ -68,8 +71,18 @@
       "html[data-sharp-manual] a { color: #fff !important; }",
       "html[data-sharp-manual] table, html[data-sharp-manual] td, html[data-sharp-manual] th { background-color: #30373c !important; border-color: #66717a !important; }",
       "html[data-sharp-manual] .item-con, html[data-sharp-manual] .childlist-item, html[data-sharp-manual] .nav-tabs a, html[data-sharp-manual] .backlinks { background-color: #343c42 !important; color: #fff !important; border-color: #66717a !important; }",
-      "html[data-sharp-manual] #backlink { display: inline-flex !important; align-items: center; gap: 10px; min-width: 150px; padding: 12px 18px !important; font-weight: 700 !important; }",
-      "html[data-sharp-manual] #backlink.sharp-portal-back { display: flex !important; box-sizing: border-box; width: calc(100% - 40px); max-width: 1000px; margin: 72px auto 14px; background: #343c42 !important; border: 2px solid #66717a; }",
+      "html[data-sharp-manual] header.header { display: flex !important; align-items: center !important; box-sizing: border-box !important; width: 100% !important; min-height: 72px !important; margin: 0 !important; padding: 12px 28px !important; }",
+      "html[data-sharp-manual] header.header .model { display: block !important; box-sizing: border-box !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; text-align: left !important; font-size: 30px !important; line-height: 1.2 !important; }",
+      "html[data-sharp-manual] header.header .model .sharp-manual-title { display: inline-flex !important; align-items: center !important; gap: 10px !important; float: none !important; margin: 0 !important; padding: 0 !important; }",
+      "html[data-sharp-manual] #backlink { display: none !important; }",
+      "html[data-sharp-manual] #home.home-con { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 14px !important; box-sizing: border-box !important; width: calc(100% - 32px) !important; max-width: none !important; margin: 0 auto !important; padding: 18px 0 36px !important; }",
+      "html[data-sharp-manual] #home.home-con::before, html[data-sharp-manual] #home.home-con::after { display: none !important; content: none !important; }",
+      "html[data-sharp-manual] #home.home-con > a.items { display: block !important; float: none !important; box-sizing: border-box !important; width: auto !important; min-width: 0 !important; height: 210px !important; margin: 0 !important; padding: 0 !important; }",
+      "html[data-sharp-manual] #home.home-con > a.items .item-con { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important; width: 100% !important; height: 100% !important; min-height: 210px !important; margin: 0 !important; padding: 22px !important; border: 1px solid #66717a !important; }",
+      "html[data-sharp-manual] #home.home-con .icon { margin: 0 0 18px !important; font-size: 66px !important; line-height: 1 !important; text-align: center !important; }",
+      "html[data-sharp-manual] #home.home-con .sectitle { margin: 0 !important; padding: 0 !important; font-size: 24px !important; line-height: 1.2 !important; text-align: center !important; }",
+      "@media (max-width: 900px) { html[data-sharp-manual] #home.home-con { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }",
+      "@media (max-width: 560px) { html[data-sharp-manual] header.header { padding: 12px 18px !important; } html[data-sharp-manual] header.header .model { font-size: 24px !important; } html[data-sharp-manual] #home.home-con { grid-template-columns: 1fr !important; width: calc(100% - 24px) !important; } }",
       "html[data-sharp-manual] a:focus, html[data-sharp-manual] button:focus, html[data-sharp-manual] [role='button']:focus, html[data-sharp-manual] [tabindex]:focus {",
       "  outline: 3px solid #baff35 !important;",
       "  outline-offset: -7px !important;",
@@ -79,57 +92,29 @@
       "  transform: scale(1.012);",
       "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
       "}",
-      "html[data-sharp-manual] a:focus .item-con, html[data-sharp-manual] [tabindex]:focus .item-con, html[data-sharp-manual] #backlink.sharp-portal-back:focus { background-color: #f7309d !important; }"
+      "html[data-sharp-manual] a:focus .item-con, html[data-sharp-manual] [tabindex]:focus .item-con { background-color: #f7309d !important; }"
     ].join("\n");
     document.head.appendChild(style);
   }
 
-  function applyBackButton() {
-    var back = document.getElementById("backlink");
-    if (!back) {
-      var manualHome = document.querySelector(".a-container");
-      var host = document.querySelector(".con-center") ||
-        document.querySelector(".site-content") ||
-        document.querySelector("main") ||
-        document.body;
-      back = document.createElement("a");
-      back.id = "backlink";
-      back.className = "sharp-portal-back";
-      if (manualHome && manualHome.parentNode) manualHome.parentNode.insertBefore(back, manualHome);
-      else host.insertBefore(back, host.firstChild);
+  function applyManualChrome() {
+    var manualTitle = MANUAL_TITLE_LABELS[language] || MANUAL_TITLE_LABELS.en;
+    var headerTitle = document.querySelector("header.header .model");
+    if (headerTitle) {
+      headerTitle.textContent = "";
+      var title = document.createElement("strong");
+      title.className = "sharp-manual-title";
+      var icon = document.createElement("i");
+      icon.className = "fas fa-book";
+      icon.setAttribute("aria-hidden", "true");
+      title.appendChild(icon);
+      title.appendChild(document.createTextNode(manualTitle));
+      headerTitle.appendChild(title);
+      headerTitle.setAttribute("aria-label", manualTitle);
     }
-    var label = BACK_LABELS[language] || BACK_LABELS.en;
-    var icon = back.querySelector("i");
-    back.textContent = "";
-    if (icon) back.appendChild(icon);
-    back.appendChild(document.createTextNode((icon ? " " : "") + label));
-    back.setAttribute("href", window.SharpLifePortalBackTarget);
-    back.setAttribute("aria-label", label);
-  }
 
-  function handleManualBackClick(event) {
-    var target = event.target;
-    while (target && target !== document && target.id !== "backlink") target = target.parentNode;
-    if (!target || target.id !== "backlink") return;
-    event.preventDefault();
-    window.location.assign(window.SharpLifePortalBackTarget);
-  }
-
-  function keepBackButtonConnected() {
-    if (!window.MutationObserver || !document.body) return;
-    var scheduled = false;
-    var observer = new window.MutationObserver(function () {
-      if (scheduled) return;
-      var back = document.getElementById("backlink");
-      var label = BACK_LABELS[language] || BACK_LABELS.en;
-      if (back && back.textContent.trim() === label && back.href === window.SharpLifePortalBackTarget) return;
-      scheduled = true;
-      window.setTimeout(function () {
-        scheduled = false;
-        applyBackButton();
-      }, 0);
-    });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["href"] });
+    var back = document.getElementById("backlink");
+    if (back && back.parentNode) back.parentNode.removeChild(back);
   }
 
   function loadAccessibility() {
@@ -159,10 +144,8 @@
   function initialize() {
     rewriteLinks();
     addFocusStyle();
-    applyBackButton();
-    document.addEventListener("click", handleManualBackClick, true);
-    window.addEventListener("load", applyBackButton, { once: true });
-    window.addEventListener("load", keepBackButtonConnected, { once: true });
+    applyManualChrome();
+    window.addEventListener("load", applyManualChrome, { once: true });
     loadAccessibility();
   }
 
