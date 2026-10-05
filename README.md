@@ -6,6 +6,7 @@ Static test copy of Sharp Life Portal version 7 for Titan OS televisions.
 - a TV-friendly home page that writes the selected ISO language code to `?lang=`
 - a fully translated language-selection screen for all 28 supported language options
 - translated home-page promotional cards for all 28 supported language options
+- translated promotional detail windows, descriptions, feature lists and QR captions for all 28 supported language options
 - automatic language selection through Titan SDK DeviceInfo
 - compatibility aliases including `sp` → `es`
 - Titan SDK text-to-speech support for focusable portal items

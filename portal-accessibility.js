@@ -98,22 +98,42 @@
     if (window.SharpPortalCardLocalization) {
       window.SharpPortalCardLocalization.apply(document.documentElement.lang);
     }
+    if (window.SharpPortalModalLocalization) {
+      window.SharpPortalModalLocalization.apply(document.documentElement.lang);
+    }
     prepareFocusableContent();
     document.addEventListener("focusin", handleFocus, true);
     getSdkAccessibility();
   }
 
   function initializeWithCardTranslations() {
-    if (!document.getElementById("lifeapp") || window.SharpPortalCardLocalization) {
+    if (!document.getElementById("lifeapp")) {
       initialize();
       return;
     }
 
-    var localization = document.createElement("script");
-    localization.src = new URL("portal-card-i18n.js", portalRoot).toString();
-    localization.onload = initialize;
-    localization.onerror = initialize;
-    document.head.appendChild(localization);
+    function loadModalTranslations() {
+      if (window.SharpPortalModalLocalization) {
+        initialize();
+        return;
+      }
+      var modalLocalization = document.createElement("script");
+      modalLocalization.src = new URL("portal-modal-i18n.js", portalRoot).toString();
+      modalLocalization.onload = initialize;
+      modalLocalization.onerror = initialize;
+      document.head.appendChild(modalLocalization);
+    }
+
+    if (window.SharpPortalCardLocalization) {
+      loadModalTranslations();
+      return;
+    }
+
+    var cardLocalization = document.createElement("script");
+    cardLocalization.src = new URL("portal-card-i18n.js", portalRoot).toString();
+    cardLocalization.onload = loadModalTranslations;
+    cardLocalization.onerror = loadModalTranslations;
+    document.head.appendChild(cardLocalization);
   }
 
   if (document.readyState === "loading") {
