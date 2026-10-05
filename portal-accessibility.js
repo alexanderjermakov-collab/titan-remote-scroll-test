@@ -4,6 +4,8 @@
   var sdkAccessibility = null;
   var sdkReady = null;
   var lastSpokenText = "";
+  var accessibilityScript = document.currentScript;
+  var portalRoot = new URL("./", accessibilityScript && accessibilityScript.src ? accessibilityScript.src : window.location.href);
 
   function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -93,14 +95,30 @@
   }
 
   function initialize() {
+    if (window.SharpPortalCardLocalization) {
+      window.SharpPortalCardLocalization.apply(document.documentElement.lang);
+    }
     prepareFocusableContent();
     document.addEventListener("focusin", handleFocus, true);
     getSdkAccessibility();
   }
 
+  function initializeWithCardTranslations() {
+    if (!document.getElementById("lifeapp") || window.SharpPortalCardLocalization) {
+      initialize();
+      return;
+    }
+
+    var localization = document.createElement("script");
+    localization.src = new URL("portal-card-i18n.js", portalRoot).toString();
+    localization.onload = initialize;
+    localization.onerror = initialize;
+    document.head.appendChild(localization);
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    document.addEventListener("DOMContentLoaded", initializeWithCardTranslations, { once: true });
   } else {
-    initialize();
+    initializeWithCardTranslations();
   }
 })();
