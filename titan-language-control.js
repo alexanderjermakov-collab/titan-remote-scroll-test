@@ -66,10 +66,11 @@
     var manual = document.getElementById("instructionmanual");
     if (!manual) return null;
     var manualLanguage = language === "pt-pt" ? "pt" : language;
-    var url = new URL("../manual/" + version + "/" + encodeURIComponent(manualLanguage) + "/", window.location.href).toString();
-    manual.setAttribute("href", url);
+    var url = new URL("../manual/" + version + "/" + encodeURIComponent(manualLanguage) + "/", window.location.href);
+    url.searchParams.set("portalLang", language);
+    manual.setAttribute("href", url.toString());
     manual.setAttribute("hreflang", language);
-    return url;
+    return url.toString();
   }
 
   function redirectToLocalizedPortal(language) {

@@ -11,6 +11,124 @@
     "[role='button']",
     "[tabindex]:not([tabindex='-1'])"
   ].join(",");
+  var EXIT_COPY = {
+    bg: ["Да затворите ли Sharp Life Portal?", "Отказ", "Затвори"],
+    ca: ["Voleu tancar Sharp Life Portal?", "Cancel·la", "Tanca"],
+    cs: ["Chcete zavřít Sharp Life Portal?", "Zrušit", "Zavřít"],
+    da: ["Vil du lukke Sharp Life Portal?", "Annuller", "Luk"],
+    de: ["Möchten Sie Sharp Life Portal schließen?", "Abbrechen", "Schließen"],
+    el: ["Θέλετε να κλείσετε το Sharp Life Portal;", "Ακύρωση", "Κλείσιμο"],
+    en: ["Close Sharp Life Portal?", "Cancel", "Close"],
+    es: ["¿Desea cerrar Sharp Life Portal?", "Cancelar", "Cerrar"],
+    et: ["Kas sulgeda Sharp Life Portal?", "Loobu", "Sulge"],
+    fi: ["Suljetaanko Sharp Life Portal?", "Peruuta", "Sulje"],
+    fr: ["Fermer Sharp Life Portal ?", "Annuler", "Fermer"],
+    hr: ["Želite li zatvoriti Sharp Life Portal?", "Odustani", "Zatvori"],
+    hu: ["Bezárja a Sharp Life Portalt?", "Mégse", "Bezárás"],
+    it: ["Chiudere Sharp Life Portal?", "Annulla", "Chiudi"],
+    lt: ["Uždaryti „Sharp Life Portal“?", "Atšaukti", "Uždaryti"],
+    lv: ["Vai aizvērt Sharp Life Portal?", "Atcelt", "Aizvērt"],
+    nl: ["Sharp Life Portal sluiten?", "Annuleren", "Sluiten"],
+    no: ["Vil du lukke Sharp Life Portal?", "Avbryt", "Lukk"],
+    pl: ["Zamknąć Sharp Life Portal?", "Anuluj", "Zamknij"],
+    pt: ["Fechar o Sharp Life Portal?", "Cancelar", "Fechar"],
+    "pt-pt": ["Fechar o Sharp Life Portal?", "Cancelar", "Fechar"],
+    ro: ["Închideți Sharp Life Portal?", "Anulați", "Închideți"],
+    ru: ["Закрыть Sharp Life Portal?", "Отмена", "Закрыть"],
+    sk: ["Zavrieť Sharp Life Portal?", "Zrušiť", "Zavrieť"],
+    sl: ["Želite zapreti Sharp Life Portal?", "Prekliči", "Zapri"],
+    sr: ["Želite li da zatvorite Sharp Life Portal?", "Otkaži", "Zatvori"],
+    sv: ["Vill du stänga Sharp Life Portal?", "Avbryt", "Stäng"],
+    uk: ["Закрити Sharp Life Portal?", "Скасувати", "Закрити"]
+  };
+  var focusBeforeExitDialog = null;
+
+  function normalizedLanguage() {
+    var value = String(document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
+    if (EXIT_COPY[value]) return value;
+    value = value.split("-")[0];
+    return EXIT_COPY[value] ? value : "en";
+  }
+
+  function addPortalUiStyles() {
+    if (document.getElementById("sharp-portal-ui-style")) return;
+    var style = document.createElement("style");
+    style.id = "sharp-portal-ui-style";
+    style.textContent = [
+      "html:not([data-sharp-manual]) .homepage-large #instructionmanual h3,",
+      "html:not([data-sharp-manual]) .homepage-large #lifeapp h2,",
+      "html:not([data-sharp-manual]) .homepage-large #some h2 {",
+      "  font-size: 1.28em !important;",
+      "  line-height: 1.12 !important;",
+      "  font-weight: 700 !important;",
+      "  margin: 0 !important;",
+      "}",
+      "html:not([data-sharp-manual]) .homepage-app .content:focus,",
+      "html:not([data-sharp-manual]) #modal .close:focus,",
+      "html:not([data-sharp-manual]) button:focus,",
+      "html:not([data-sharp-manual]) select:focus,",
+      "html:not([data-sharp-manual]) [role='button']:focus {",
+      "  outline: 3px solid #baff35 !important;",
+      "  outline-offset: -7px !important;",
+      "  box-shadow: inset 0 0 0 7px #baff35, inset 0 0 0 999px rgba(247, 48, 157, 0.28), 0 0 0 4px #f7309d, 0 0 18px rgba(247, 48, 157, 0.9) !important;",
+      "  transform: scale(1.018) !important;",
+      "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
+      "}",
+      "#sharp-portal-exit-confirmation { position: fixed; inset: 0; z-index: 2147483646; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.72); font-family: Roboto, Arial, sans-serif; }",
+      "#sharp-portal-exit-confirmation.sharp-dialog-open { display: flex; }",
+      "#sharp-portal-exit-confirmation .sharp-exit-panel { width: min(680px, 82vw); padding: 36px; border: 2px solid #69727a; border-radius: 8px; background: #30373c; color: #fff; text-align: center; box-shadow: 0 18px 55px rgba(0,0,0,.7); }",
+      "#sharp-portal-exit-confirmation .sharp-exit-message { margin: 0 0 32px; font-size: 30px; line-height: 1.25; font-weight: 600; }",
+      "#sharp-portal-exit-confirmation .sharp-exit-actions { display: flex; justify-content: center; gap: 24px; }",
+      "#sharp-portal-exit-confirmation button { min-width: 190px; padding: 15px 24px; border: 2px solid #75808a; border-radius: 4px; background: #424b52; color: #fff; font-size: 23px; font-weight: 600; }",
+      "#sharp-portal-exit-confirmation button:focus { background: #f7309d !important; color: #fff !important; }",
+      "@media (max-width: 700px) {",
+      "  html:not([data-sharp-manual]) .homepage-large #instructionmanual h3, html:not([data-sharp-manual]) .homepage-large #lifeapp h2, html:not([data-sharp-manual]) .homepage-large #some h2 { font-size: 18px !important; }",
+      "  #sharp-portal-exit-confirmation .sharp-exit-message { font-size: 23px; }",
+      "  #sharp-portal-exit-confirmation button { min-width: 125px; font-size: 18px; }",
+      "}"
+    ].join("\n");
+    document.head.appendChild(style);
+    document.documentElement.setAttribute("data-portal-ui", "true");
+  }
+
+  function closeExitConfirmation() {
+    var dialog = document.getElementById("sharp-portal-exit-confirmation");
+    if (!dialog) return false;
+    dialog.classList.remove("sharp-dialog-open");
+    dialog.setAttribute("aria-hidden", "true");
+    if (focusBeforeExitDialog && typeof focusBeforeExitDialog.focus === "function") {
+      focusBeforeExitDialog.focus({ preventScroll: true });
+    }
+    return true;
+  }
+
+  function showExitConfirmation() {
+    var language = normalizedLanguage();
+    var text = EXIT_COPY[language] || EXIT_COPY.en;
+    var dialog = document.getElementById("sharp-portal-exit-confirmation");
+    if (!dialog) {
+      dialog = document.createElement("div");
+      dialog.id = "sharp-portal-exit-confirmation";
+      dialog.setAttribute("role", "dialog");
+      dialog.setAttribute("aria-modal", "true");
+      dialog.innerHTML = '<div class="sharp-exit-panel"><p class="sharp-exit-message"></p><div class="sharp-exit-actions"><button type="button" data-exit-action="cancel"></button><button type="button" data-exit-action="close"></button></div></div>';
+      document.body.appendChild(dialog);
+      dialog.querySelector('[data-exit-action="cancel"]').addEventListener("click", closeExitConfirmation);
+      dialog.querySelector('[data-exit-action="close"]').addEventListener("click", function () {
+        closeExitConfirmation();
+        exitPortal();
+      });
+    }
+    dialog.querySelector(".sharp-exit-message").textContent = text[0];
+    dialog.querySelector('[data-exit-action="cancel"]').textContent = text[1];
+    dialog.querySelector('[data-exit-action="close"]').textContent = text[2];
+    dialog.setAttribute("aria-label", text[0]);
+    dialog.setAttribute("aria-hidden", "false");
+    focusBeforeExitDialog = document.activeElement;
+    dialog.classList.add("sharp-dialog-open");
+    dialog.querySelector('[data-exit-action="cancel"]').focus({ preventScroll: true });
+    return true;
+  }
 
   function commandFor(event) {
     var key = String(event.key || "");
@@ -72,7 +190,9 @@
   }
 
   function focusableElements() {
-    var nodes = document.querySelectorAll(FOCUSABLE_SELECTOR);
+    var dialog = document.getElementById("sharp-portal-exit-confirmation");
+    var root = dialog && isVisible(dialog) ? dialog : document;
+    var nodes = root.querySelectorAll(FOCUSABLE_SELECTOR);
     var result = [];
     for (var i = 0; i < nodes.length; i += 1) {
       if (isVisible(nodes[i]) && nodes[i].getAttribute("aria-hidden") !== "true") result.push(nodes[i]);
@@ -169,6 +289,9 @@
   }
 
   function handleBack() {
+    var exitDialog = document.getElementById("sharp-portal-exit-confirmation");
+    if (isVisible(exitDialog)) return closeExitConfirmation();
+
     var modal = document.getElementById("modal");
     if (isVisible(modal)) {
       var close = modal.querySelector(".close, [data-dismiss='modal'], [aria-label*='close' i]");
@@ -178,9 +301,13 @@
       }
     }
 
-    if (document.documentElement.hasAttribute("data-language-selector") ||
-        (document.getElementById("instructionmanual") && !document.documentElement.hasAttribute("data-sharp-manual"))) {
-      return exitPortal();
+    if (document.documentElement.hasAttribute("data-sharp-manual") && window.SharpLifePortalBackTarget) {
+      window.location.assign(window.SharpLifePortalBackTarget);
+      return true;
+    }
+
+    if (document.documentElement.hasAttribute("data-language-selector") || document.getElementById("instructionmanual")) {
+      return showExitConfirmation();
     }
 
     if (window.history.length > 1) {
@@ -249,5 +376,6 @@
     }
   }
 
+  addPortalUiStyles();
   document.addEventListener("keydown", handleKeydown, true);
 })();
