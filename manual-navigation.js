@@ -7,8 +7,9 @@
   var sourceUrl = sourceMeta ? sourceMeta.getAttribute("content") : "";
   var source = sourceUrl ? new URL(sourceUrl) : null;
   var language = source && source.searchParams.get("lang") || document.documentElement.lang || "en";
-  language = String(language).toLowerCase().split("-")[0];
+  language = String(language).toLowerCase().replace(/_/g, "-");
   if (language === "pt-pt") language = "pt";
+  else language = language.split("-")[0];
   var portalLanguage = new URLSearchParams(window.location.search).get("portalLang") || language;
   portalLanguage = String(portalLanguage).toLowerCase().replace(/_/g, "-");
   if (portalLanguage !== "pt-pt") portalLanguage = portalLanguage.split("-")[0];
@@ -63,11 +64,12 @@
       "html[data-sharp-manual], html[data-sharp-manual] body { background: #272d31 !important; color: #fff !important; color-scheme: dark; }",
       "html[data-sharp-manual] header, html[data-sharp-manual] .header { background: #272d31 !important; color: #fff !important; border-color: #66717a !important; }",
       "html[data-sharp-manual] body, html[data-sharp-manual] #page, html[data-sharp-manual] .site, html[data-sharp-manual] .site-content, html[data-sharp-manual] .content-area, html[data-sharp-manual] .site-main, html[data-sharp-manual] article, html[data-sharp-manual] section, html[data-sharp-manual] .im-content, html[data-sharp-manual] .con-center, html[data-sharp-manual] .container--content, html[data-sharp-manual] .tab-content, html[data-sharp-manual] .tab-pane { background-color: #272d31 !important; color: #fff !important; }",
-      "html[data-sharp-manual] h1, html[data-sharp-manual] h2, html[data-sharp-manual] h3, html[data-sharp-manual] h4, html[data-sharp-manual] h5, html[data-sharp-manual] h6, html[data-sharp-manual] p, html[data-sharp-manual] li, html[data-sharp-manual] td, html[data-sharp-manual] th, html[data-sharp-manual] label, html[data-sharp-manual] span { color: #fff !important; }",
+      "html[data-sharp-manual] h1, html[data-sharp-manual] h2, html[data-sharp-manual] h3, html[data-sharp-manual] h4, html[data-sharp-manual] h5, html[data-sharp-manual] h6, html[data-sharp-manual] p, html[data-sharp-manual] li, html[data-sharp-manual] td, html[data-sharp-manual] th, html[data-sharp-manual] label, html[data-sharp-manual] span, html[data-sharp-manual] i, html[data-sharp-manual] .icon { color: #fff !important; }",
       "html[data-sharp-manual] a { color: #fff !important; }",
       "html[data-sharp-manual] table, html[data-sharp-manual] td, html[data-sharp-manual] th { background-color: #30373c !important; border-color: #66717a !important; }",
-      "html[data-sharp-manual] .childlist-item, html[data-sharp-manual] .nav-tabs a, html[data-sharp-manual] .backlinks { background-color: #343c42 !important; color: #fff !important; border-color: #66717a !important; }",
+      "html[data-sharp-manual] .item-con, html[data-sharp-manual] .childlist-item, html[data-sharp-manual] .nav-tabs a, html[data-sharp-manual] .backlinks { background-color: #343c42 !important; color: #fff !important; border-color: #66717a !important; }",
       "html[data-sharp-manual] #backlink { display: inline-flex !important; align-items: center; gap: 10px; min-width: 150px; padding: 12px 18px !important; font-weight: 700 !important; }",
+      "html[data-sharp-manual] #backlink.sharp-portal-back { display: flex !important; box-sizing: border-box; width: calc(100% - 40px); max-width: 1000px; margin: 72px auto 14px; background: #343c42 !important; border: 2px solid #66717a; }",
       "html[data-sharp-manual] a:focus, html[data-sharp-manual] button:focus, html[data-sharp-manual] [role='button']:focus, html[data-sharp-manual] [tabindex]:focus {",
       "  outline: 3px solid #baff35 !important;",
       "  outline-offset: -7px !important;",
@@ -76,7 +78,8 @@
       "  box-shadow: inset 0 0 0 7px #baff35, 0 0 0 4px #f7309d, 0 0 18px rgba(247, 48, 157, 0.9) !important;",
       "  transform: scale(1.012);",
       "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
-      "}"
+      "}",
+      "html[data-sharp-manual] a:focus .item-con, html[data-sharp-manual] [tabindex]:focus .item-con, html[data-sharp-manual] #backlink.sharp-portal-back:focus { background-color: #f7309d !important; }"
     ].join("\n");
     document.head.appendChild(style);
   }
@@ -84,6 +87,7 @@
   function applyBackButton() {
     var back = document.getElementById("backlink");
     if (!back) {
+      var manualHome = document.querySelector(".a-container");
       var host = document.querySelector(".con-center") ||
         document.querySelector(".site-content") ||
         document.querySelector("main") ||
@@ -91,7 +95,8 @@
       back = document.createElement("a");
       back.id = "backlink";
       back.className = "sharp-portal-back";
-      host.insertBefore(back, host.firstChild);
+      if (manualHome && manualHome.parentNode) manualHome.parentNode.insertBefore(back, manualHome);
+      else host.insertBefore(back, host.firstChild);
     }
     var label = BACK_LABELS[language] || BACK_LABELS.en;
     var icon = back.querySelector("i");
