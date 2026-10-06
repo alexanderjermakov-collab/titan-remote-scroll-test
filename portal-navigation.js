@@ -47,6 +47,36 @@
     sv: ["Vill du stänga Sharp Life Portal?", "Avbryt", "Stäng"],
     uk: ["Закрити Sharp Life Portal?", "Скасувати", "Закрити"]
   };
+  var ABOUT_COPY = {
+    bg: ["Относно", "Номер на версията", "Дата на издаване", "Собственик", "Всички права запазени.", "Назад"],
+    ca: ["Quant a", "Número de versió", "Data de llançament", "Propietari", "Tots els drets reservats.", "Enrere"],
+    cs: ["O aplikaci", "Číslo verze", "Datum vydání", "Vlastník", "Všechna práva vyhrazena.", "Zpět"],
+    da: ["Om", "Versionsnummer", "Udgivelsesdato", "Ejer", "Alle rettigheder forbeholdes.", "Tilbage"],
+    de: ["Über", "Versionsnummer", "Veröffentlichungsdatum", "Eigentümer", "Alle Rechte vorbehalten.", "Zurück"],
+    el: ["Σχετικά", "Αριθμός έκδοσης", "Ημερομηνία κυκλοφορίας", "Κάτοχος", "Με την επιφύλαξη παντός δικαιώματος.", "Πίσω"],
+    en: ["About", "Version number", "Release date", "Owner", "All rights reserved.", "Back"],
+    es: ["Acerca de", "Número de versión", "Fecha de lanzamiento", "Propietario", "Todos los derechos reservados.", "Atrás"],
+    et: ["Teave", "Versiooni number", "Väljalaskekuupäev", "Omanik", "Kõik õigused kaitstud.", "Tagasi"],
+    fi: ["Tietoja", "Versionumero", "Julkaisupäivä", "Omistaja", "Kaikki oikeudet pidätetään.", "Takaisin"],
+    fr: ["À propos", "Numéro de version", "Date de publication", "Propriétaire", "Tous droits réservés.", "Retour"],
+    hr: ["O portalu", "Broj verzije", "Datum izdanja", "Vlasnik", "Sva prava pridržana.", "Natrag"],
+    hu: ["Névjegy", "Verziószám", "Kiadás dátuma", "Tulajdonos", "Minden jog fenntartva.", "Vissza"],
+    it: ["Informazioni", "Numero di versione", "Data di rilascio", "Proprietario", "Tutti i diritti riservati.", "Indietro"],
+    lt: ["Apie", "Versijos numeris", "Išleidimo data", "Savininkas", "Visos teisės saugomos.", "Atgal"],
+    lv: ["Par", "Versijas numurs", "Izdošanas datums", "Īpašnieks", "Visas tiesības aizsargātas.", "Atpakaļ"],
+    nl: ["Over", "Versienummer", "Releasedatum", "Eigenaar", "Alle rechten voorbehouden.", "Terug"],
+    no: ["Om", "Versjonsnummer", "Utgivelsesdato", "Eier", "Alle rettigheter reservert.", "Tilbake"],
+    pl: ["Informacje", "Numer wersji", "Data wydania", "Właściciel", "Wszelkie prawa zastrzeżone.", "Wstecz"],
+    pt: ["Sobre", "Número da versão", "Data de lançamento", "Proprietário", "Todos os direitos reservados.", "Voltar"],
+    "pt-pt": ["Sobre", "Número da versão", "Data de lançamento", "Proprietário", "Todos os direitos reservados.", "Voltar"],
+    ro: ["Despre", "Numărul versiunii", "Data lansării", "Proprietar", "Toate drepturile rezervate.", "Înapoi"],
+    ru: ["О портале", "Номер версии", "Дата выпуска", "Владелец", "Все права защищены.", "Назад"],
+    sk: ["Informácie", "Číslo verzie", "Dátum vydania", "Vlastník", "Všetky práva vyhradené.", "Späť"],
+    sl: ["O portalu", "Številka različice", "Datum izdaje", "Lastnik", "Vse pravice pridržane.", "Nazaj"],
+    sr: ["O portalu", "Broj verzije", "Datum izdanja", "Vlasnik", "Sva prava zadržana.", "Nazad"],
+    sv: ["Om", "Versionsnummer", "Utgivningsdatum", "Ägare", "Alla rättigheter förbehållna.", "Tillbaka"],
+    uk: ["Про портал", "Номер версії", "Дата випуску", "Власник", "Усі права захищено.", "Назад"]
+  };
   var focusBeforeExitDialog = null;
   var focusBeforeAboutDialog = null;
 
@@ -147,6 +177,25 @@
     return true;
   }
 
+  function applyAboutLocalization(dialog) {
+    var text = ABOUT_COPY[normalizedLanguage()] || ABOUT_COPY.en;
+    var aboutButton = document.querySelector("#sharp-portal-top-controls .sharp-portal-about-button");
+    if (aboutButton) {
+      aboutButton.textContent = text[0];
+      aboutButton.setAttribute("aria-label", text[0]);
+      aboutButton.setAttribute("title", text[0]);
+    }
+    if (!dialog) return;
+    dialog.setAttribute("aria-label", text[0] + " Sharp Life Portal");
+    var back = dialog.querySelector(".sharp-about-back");
+    back.setAttribute("aria-label", text[5]);
+    back.setAttribute("title", text[5]);
+    dialog.querySelector(".sharp-about-version-label").textContent = text[1];
+    dialog.querySelector(".sharp-about-release-label").textContent = text[2];
+    dialog.querySelector(".sharp-about-owner-label").textContent = text[3];
+    dialog.querySelector(".sharp-about-rights").textContent = text[4];
+  }
+
   function showAboutDialog() {
     var dialog = document.getElementById("sharp-portal-about");
     if (!dialog) {
@@ -154,23 +203,23 @@
       dialog.id = "sharp-portal-about";
       dialog.setAttribute("role", "dialog");
       dialog.setAttribute("aria-modal", "true");
-      dialog.setAttribute("aria-label", "About Sharp Life Portal");
       dialog.innerHTML = [
         '<div class="sharp-about-panel">',
         '<button type="button" class="sharp-about-back" aria-label="Back" title="Back"><img alt="" aria-hidden="true"></button>',
         '<img class="sharp-about-logo" alt="Sharp">',
         '<h2 class="sharp-about-title">Sharp Life Portal</h2>',
-        '<p class="sharp-about-details">Version number: <strong></strong><br>Release date: <span></span><br>Owner: Sharp Corporation</p>',
+        '<p class="sharp-about-details"><span class="sharp-about-version-label"></span>: <strong class="sharp-about-version"></strong><br><span class="sharp-about-release-label"></span>: <span class="sharp-about-release"></span><br><span class="sharp-about-owner-label"></span>: <span class="sharp-about-owner">Sharp Corporation</span></p>',
         '<p class="sharp-about-details sharp-about-rights">All rights reserved.</p>',
         '</div>'
       ].join("");
       dialog.querySelector(".sharp-about-back img").src = backIconUrl;
       dialog.querySelector(".sharp-about-logo").src = sharpLogoUrl;
-      dialog.querySelector(".sharp-about-details strong").textContent = RELEASE_VERSION;
-      dialog.querySelector(".sharp-about-details span").textContent = RELEASE_DATE;
+      dialog.querySelector(".sharp-about-version").textContent = RELEASE_VERSION;
+      dialog.querySelector(".sharp-about-release").textContent = RELEASE_DATE;
       dialog.querySelector(".sharp-about-back").addEventListener("click", closeAboutDialog);
       document.body.appendChild(dialog);
     }
+    applyAboutLocalization(dialog);
     focusBeforeAboutDialog = document.activeElement;
     dialog.setAttribute("aria-hidden", "false");
     dialog.classList.add("sharp-dialog-open");
@@ -189,7 +238,9 @@
       var about = document.createElement("button");
       about.type = "button";
       about.className = "sharp-portal-about-button";
-      about.textContent = "About";
+      about.textContent = (ABOUT_COPY[normalizedLanguage()] || ABOUT_COPY.en)[0];
+      about.setAttribute("aria-label", about.textContent);
+      about.setAttribute("title", about.textContent);
       about.addEventListener("click", showAboutDialog);
       controls.appendChild(about);
     }

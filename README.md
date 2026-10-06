@@ -19,7 +19,7 @@ Sharp Life Portal test release 8.0.8 for Titan OS televisions, based on the publ
 - remote-control navigation and text-to-speech hooks inside e-Manual sections and articles
 - contextual hardware BACK navigation to the previous E-Manual page, with Portal Home as the fallback
 - visible top-right BACK controls throughout the Portal and E-Manual, including left-arrow controls in Portal detail windows
-- an About window on the Portal Home page with release, ownership, rights, and Sharp branding information
+- a fully localized About button and About window in all 28 Portal languages, with release, ownership, rights, and Sharp branding information
 - localized confirmation dialog before closing the Portal with the remote-control Back command
 - TV User Menu-style Sharp-red and lime focus visualization in the Portal and E-Manual
 - dark-grey E-Manual background with white text to match the Portal home page

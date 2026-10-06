@@ -48,10 +48,29 @@
     return false;
   }
 
+  function isVisibleElement(element) {
+    if (!element) return false;
+    var style = window.getComputedStyle(element);
+    var rectangle = element.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rectangle.width > 0 && rectangle.height > 0;
+  }
+
+  function activeTextRoot() {
+    var candidates = [
+      document.getElementById("sharp-portal-about"),
+      document.getElementById("sharp-portal-exit-confirmation"),
+      document.getElementById("modal")
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      if (isVisibleElement(candidates[i])) return candidates[i];
+    }
+    return document.body;
+  }
+
   function visibleTextLines() {
     if (!document.body) return [];
     var lines = [];
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    var walker = document.createTreeWalker(activeTextRoot(), NodeFilter.SHOW_TEXT);
     var node;
     while ((node = walker.nextNode())) {
       if (!isVisibleTextNode(node)) continue;
