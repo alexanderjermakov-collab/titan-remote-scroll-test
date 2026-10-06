@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const contentElements = document.querySelectorAll(".content");
     const modal = document.getElementById("modal");
-    const instructionManual = document.querySelector("#instructionmanual");
     const homepageApp = document.querySelector(".homepage-app");
   
     // Initialize modal with modal-off class
@@ -12,6 +11,21 @@ document.addEventListener("DOMContentLoaded", function() {
     if (homepageApp) {
         homepageApp.style.display = "grid";
     }
+
+    // A browser Back navigation can restore this page from the back-forward cache.
+    // Always restore the complete Portal Home UI when that happens.
+    window.addEventListener("pageshow", () => {
+        if (homepageApp) {
+            homepageApp.style.display = "grid";
+            homepageApp.classList.remove('modal-opened');
+        }
+        if (modal) {
+            modal.classList.remove('modal-on');
+            modal.classList.add('modal-off');
+            modal.removeAttribute('data-modal-id');
+            modal.style.backgroundImage = '';
+        }
+    });
   
     if (contentElements.length > 0) {
         contentElements[0].setAttribute("tabindex", "0");
@@ -113,14 +127,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
-  
-    if (instructionManual) {
-        instructionManual.addEventListener("click", () => {
-            if (homepageApp) {
-                homepageApp.style.display = "none";
-            }
-        });
-    }
   
     window.addEventListener("click", (event) => {
         // Only close if clicking the backdrop (not the content inside)
@@ -450,4 +456,4 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
   });
-  
+

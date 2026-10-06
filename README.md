@@ -1,6 +1,6 @@
 # Sharp Life Portal — Titan OS multilingual mirror
 
-Sharp Life Portal test release 8.0.4 for Titan OS televisions, based on the public version 7 source.
+Sharp Life Portal test release 8.0.5 for Titan OS televisions, based on the public version 7 source.
 
 - 28 localized portal pages from the public source
 - a TV-friendly home page that writes the selected ISO language code to `?lang=`
@@ -20,12 +20,16 @@ Sharp Life Portal test release 8.0.4 for Titan OS televisions, based on the publ
 - visible top-right BACK controls throughout the Portal and E-Manual, including left-arrow controls in Portal detail windows
 - an About window on the Portal Home page with release, ownership, rights, and Sharp branding information
 - localized confirmation dialog before closing the Portal with the remote-control Back command
-- TV User Menu-style pink and lime focus visualization in the Portal and E-Manual
+- TV User Menu-style Sharp-red and lime focus visualization in the Portal and E-Manual
 - dark-grey E-Manual background with white text to match the Portal home page
-- a 20% larger “Sharp Life Portal” title on the Portal Home page
-- simplified E-Manual header with a left-aligned localized manual title and no language banner
+- matching title sizes for “Sharp Life Portal” and the localized Instruction Manual title
+- simplified E-Manual header with an enlarged Sharp logo, a left-aligned localized manual title and no language banner
 - E-Manual home cards arranged in the same three-column TV layout as the Portal home page
+- enlarged, centered E-Manual home icons with centered card titles
+- default focus on the first E-Manual home card and on BACK throughout E-Manual submenus and articles
 - consistent home-page title typography across the Instruction Manual, mobile app and social-media tiles
+- compact call-to-action text in the mobile-app and social-media tiles, matching the product-card buttons
+- removal of the redundant mobile-app subtitle from the Portal Home page
 - localized images, styles and scripts supplied with the source capture
 
 Source: https://data.umc-poland.com/sharp-smart-life-portal-ver7/
