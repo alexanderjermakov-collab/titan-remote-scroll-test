@@ -3,6 +3,12 @@
 
   var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
+  var RELEASE_VERSION = "8.0.4";
+  var RELEASE_DATE = "2026-10-06";
+  var navigationScript = document.currentScript;
+  var portalRoot = new URL("./", navigationScript && navigationScript.src ? navigationScript.src : window.location.href);
+  var backIconUrl = new URL("assets/back-arrow.svg", portalRoot).toString();
+  var sharpLogoUrl = new URL("assets/sharp_logo.svg", portalRoot).toString();
   var FOCUSABLE_SELECTOR = [
     "a[href]",
     "button:not([disabled])",
@@ -42,6 +48,7 @@
     uk: ["Закрити Sharp Life Portal?", "Скасувати", "Закрити"]
   };
   var focusBeforeExitDialog = null;
+  var focusBeforeAboutDialog = null;
 
   function normalizedLanguage() {
     var value = String(document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
@@ -63,6 +70,25 @@
       "  font-weight: 700 !important;",
       "  margin: 0 !important;",
       "}",
+      "html:not([data-sharp-manual]) .homepage-large .logo-con .app-name { font-size: 1.44em !important; }",
+      "#sharp-portal-top-controls { position: fixed; top: 14px; right: 18px; z-index: 2147483645; display: flex; align-items: center; gap: 12px; font-family: Roboto, Arial, sans-serif; }",
+      "#sharp-portal-top-controls button, #sharp-portal-about .sharp-about-back { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 56px; border: 2px solid #69727a; border-radius: 14px; background: rgba(20, 23, 26, .94); color: #fff; cursor: pointer; box-shadow: 0 5px 16px rgba(0,0,0,.45); }",
+      "#sharp-portal-top-controls button { padding: 8px 18px; font-size: 22px; font-weight: 700; }",
+      "#sharp-portal-top-controls .sharp-portal-back { width: 64px; padding: 5px; }",
+      "#sharp-portal-top-controls .sharp-portal-back img, #sharp-portal-about .sharp-about-back img { display: block; width: 46px; height: 46px; }",
+      "html.sharp-modal-active #sharp-portal-top-controls, html.sharp-about-active #sharp-portal-top-controls { display: none !important; }",
+      "html[data-sharp-manual] header.header .model { padding-right: 84px !important; }",
+      "#modal.modal-on .close { display: inline-flex !important; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 15px; background: #111 !important; }",
+      "#modal.modal-on .close .xlogo { width: 54px !important; height: 54px !important; }",
+      "#sharp-portal-about { position: fixed; inset: 0; z-index: 2147483646; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, .76); font-family: Roboto, Arial, sans-serif; }",
+      "#sharp-portal-about.sharp-dialog-open { display: flex; }",
+      "#sharp-portal-about .sharp-about-panel { position: relative; box-sizing: border-box; width: min(720px, 84vw); min-height: 430px; padding: 54px 64px 48px; border: 2px solid #69727a; border-radius: 12px; background: #30373c; color: #fff; text-align: center; box-shadow: 0 18px 55px rgba(0,0,0,.75); }",
+      "#sharp-portal-about .sharp-about-panel, #sharp-portal-about .sharp-about-panel h2, #sharp-portal-about .sharp-about-panel p, #sharp-portal-about .sharp-about-panel strong, #sharp-portal-about .sharp-about-panel span { color: #fff !important; }",
+      "#sharp-portal-about .sharp-about-back { position: absolute; top: 18px; right: 18px; width: 64px; height: 64px; padding: 5px; }",
+      "#sharp-portal-about .sharp-about-logo { display: block; width: 190px; height: auto; margin: 24px auto 38px; }",
+      "#sharp-portal-about .sharp-about-title { margin: 0 0 28px; font-size: 34px; line-height: 1.2; }",
+      "#sharp-portal-about .sharp-about-details { margin: 0; font-size: 25px; line-height: 1.65; }",
+      "#sharp-portal-about .sharp-about-rights { margin-top: 18px; }",
       "html:not([data-sharp-manual]) .homepage-app .content:focus,",
       "html:not([data-sharp-manual]) #modal .close:focus,",
       "html:not([data-sharp-manual]) button:focus,",
@@ -85,10 +111,121 @@
       "  html:not([data-sharp-manual]) .homepage-large #instructionmanual h3, html:not([data-sharp-manual]) .homepage-large #lifeapp h2, html:not([data-sharp-manual]) .homepage-large #some h2 { font-size: 18px !important; }",
       "  #sharp-portal-exit-confirmation .sharp-exit-message { font-size: 23px; }",
       "  #sharp-portal-exit-confirmation button { min-width: 125px; font-size: 18px; }",
+      "  html:not([data-sharp-manual]) .homepage-large .logo-con .app-name { font-size: 1.44em !important; }",
+      "  #sharp-portal-top-controls { top: 8px; right: 10px; gap: 7px; }",
+      "  #sharp-portal-top-controls button { min-height: 48px; padding: 6px 12px; font-size: 17px; }",
+      "  #sharp-portal-top-controls .sharp-portal-back { width: 52px; }",
+      "  #sharp-portal-top-controls .sharp-portal-back img { width: 40px; height: 40px; }",
+      "  html:not([data-sharp-manual]) .homepage-app { grid-template-rows: 130px 1fr !important; }",
+      "  html:not([data-sharp-manual]) .homepage-large .logo-con { height: 130px !important; align-items: start !important; padding-top: 14px !important; }",
+      "  html:not([data-sharp-manual]) .homepage-large .container-app { margin-top: 0 !important; }",
+      "  html:not([data-sharp-manual]) #sharp-portal-top-controls { top: 70px; }",
+      "  #sharp-portal-about .sharp-about-panel { width: 92vw; min-height: 360px; padding: 45px 28px 34px; }",
+      "  #sharp-portal-about .sharp-about-title { font-size: 27px; }",
+      "  #sharp-portal-about .sharp-about-details { font-size: 19px; }",
       "}"
     ].join("\n");
     document.head.appendChild(style);
     document.documentElement.setAttribute("data-portal-ui", "true");
+  }
+
+  function isPortalHome() {
+    return Boolean(document.getElementById("instructionmanual"));
+  }
+
+  function closeAboutDialog() {
+    var dialog = document.getElementById("sharp-portal-about");
+    if (!dialog || !dialog.classList.contains("sharp-dialog-open")) return false;
+    dialog.classList.remove("sharp-dialog-open");
+    dialog.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("sharp-about-active");
+    if (focusBeforeAboutDialog && typeof focusBeforeAboutDialog.focus === "function") {
+      focusBeforeAboutDialog.focus({ preventScroll: true });
+    }
+    return true;
+  }
+
+  function showAboutDialog() {
+    var dialog = document.getElementById("sharp-portal-about");
+    if (!dialog) {
+      dialog = document.createElement("div");
+      dialog.id = "sharp-portal-about";
+      dialog.setAttribute("role", "dialog");
+      dialog.setAttribute("aria-modal", "true");
+      dialog.setAttribute("aria-label", "About Sharp Life Portal");
+      dialog.innerHTML = [
+        '<div class="sharp-about-panel">',
+        '<button type="button" class="sharp-about-back" aria-label="Back" title="Back"><img alt="" aria-hidden="true"></button>',
+        '<img class="sharp-about-logo" alt="Sharp">',
+        '<h2 class="sharp-about-title">Sharp Life Portal</h2>',
+        '<p class="sharp-about-details">Version number: <strong></strong><br>Release date: <span></span><br>Owner: Sharp Corporation</p>',
+        '<p class="sharp-about-details sharp-about-rights">All rights reserved.</p>',
+        '</div>'
+      ].join("");
+      dialog.querySelector(".sharp-about-back img").src = backIconUrl;
+      dialog.querySelector(".sharp-about-logo").src = sharpLogoUrl;
+      dialog.querySelector(".sharp-about-details strong").textContent = RELEASE_VERSION;
+      dialog.querySelector(".sharp-about-details span").textContent = RELEASE_DATE;
+      dialog.querySelector(".sharp-about-back").addEventListener("click", closeAboutDialog);
+      document.body.appendChild(dialog);
+    }
+    focusBeforeAboutDialog = document.activeElement;
+    dialog.setAttribute("aria-hidden", "false");
+    dialog.classList.add("sharp-dialog-open");
+    document.documentElement.classList.add("sharp-about-active");
+    dialog.querySelector(".sharp-about-back").focus({ preventScroll: true });
+    return true;
+  }
+
+  function addTopControls() {
+    if (document.getElementById("sharp-portal-top-controls")) return;
+    var controls = document.createElement("div");
+    controls.id = "sharp-portal-top-controls";
+    controls.setAttribute("aria-label", "Portal controls");
+
+    if (isPortalHome()) {
+      var about = document.createElement("button");
+      about.type = "button";
+      about.className = "sharp-portal-about-button";
+      about.textContent = "About";
+      about.addEventListener("click", showAboutDialog);
+      controls.appendChild(about);
+    }
+
+    var back = document.createElement("button");
+    back.type = "button";
+    back.className = "sharp-portal-back";
+    back.setAttribute("aria-label", "Back");
+    back.setAttribute("title", "Back");
+    back.innerHTML = '<img alt="" aria-hidden="true">';
+    back.querySelector("img").src = backIconUrl;
+    back.addEventListener("click", handleBack);
+    controls.appendChild(back);
+    document.body.appendChild(controls);
+  }
+
+  function syncModalBackButton() {
+    var modal = document.getElementById("modal");
+    var closes = document.querySelectorAll("#modal .close, .hidden-content .close");
+    for (var i = 0; i < closes.length; i += 1) {
+      closes[i].setAttribute("role", "button");
+      closes[i].setAttribute("aria-label", "Back");
+      closes[i].setAttribute("title", "Back");
+      var image = closes[i].querySelector("img");
+      if (image && image.src !== backIconUrl) image.src = backIconUrl;
+      if (image) {
+        image.alt = "";
+        image.setAttribute("aria-hidden", "true");
+      }
+    }
+    document.documentElement.classList.toggle("sharp-modal-active", Boolean(modal && modal.classList.contains("modal-on")));
+  }
+
+  function observeModal() {
+    syncModalBackButton();
+    if (!window.MutationObserver || !document.body) return;
+    var observer = new MutationObserver(syncModalBackButton);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"], childList: true, subtree: true });
   }
 
   function closeExitConfirmation() {
@@ -190,8 +327,9 @@
   }
 
   function focusableElements() {
-    var dialog = document.getElementById("sharp-portal-exit-confirmation");
-    var root = dialog && isVisible(dialog) ? dialog : document;
+    var exitDialog = document.getElementById("sharp-portal-exit-confirmation");
+    var aboutDialog = document.getElementById("sharp-portal-about");
+    var root = exitDialog && isVisible(exitDialog) ? exitDialog : aboutDialog && isVisible(aboutDialog) ? aboutDialog : document;
     var nodes = root.querySelectorAll(FOCUSABLE_SELECTOR);
     var result = [];
     for (var i = 0; i < nodes.length; i += 1) {
@@ -292,6 +430,9 @@
     var exitDialog = document.getElementById("sharp-portal-exit-confirmation");
     if (isVisible(exitDialog)) return closeExitConfirmation();
 
+    var aboutDialog = document.getElementById("sharp-portal-about");
+    if (isVisible(aboutDialog)) return closeAboutDialog();
+
     var modal = document.getElementById("modal");
     if (isVisible(modal)) {
       var close = modal.querySelector(".close, [data-dismiss='modal'], [aria-label*='close' i]");
@@ -301,9 +442,15 @@
       }
     }
 
-    if (document.documentElement.hasAttribute("data-sharp-manual") && window.SharpLifePortalBackTarget) {
-      window.location.assign(window.SharpLifePortalBackTarget);
-      return true;
+    if (document.documentElement.hasAttribute("data-sharp-manual")) {
+      if (document.referrer && window.history.length > 1) {
+        window.history.back();
+        return true;
+      }
+      if (window.SharpLifePortalBackTarget) {
+        window.location.assign(window.SharpLifePortalBackTarget);
+        return true;
+      }
     }
 
     if (document.documentElement.hasAttribute("data-language-selector") || document.getElementById("instructionmanual")) {
@@ -376,6 +523,19 @@
     }
   }
 
+  function initializePortalNavigation() {
+    if (document.documentElement.hasAttribute("data-sharp-manual") && !document.getElementById("status")) {
+      var legacyStatus = document.createElement("span");
+      legacyStatus.id = "status";
+      legacyStatus.hidden = true;
+      document.body.appendChild(legacyStatus);
+    }
+    addTopControls();
+    observeModal();
+  }
+
   addPortalUiStyles();
   document.addEventListener("keydown", handleKeydown, true);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initializePortalNavigation, { once: true });
+  else initializePortalNavigation();
 })();
