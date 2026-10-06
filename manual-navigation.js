@@ -3,6 +3,7 @@
 
   var script = document.currentScript;
   var portalRoot = new URL("./", script && script.src ? script.src : window.location.href);
+  var releaseVersion = script && script.src ? new URL(script.src).searchParams.get("v") : "";
   var sharpLogoUrl = new URL("assets/sharp_logo.svg", portalRoot).toString();
   var sourceMeta = document.querySelector('meta[name="sharp-manual-source"]');
   var sourceUrl = sourceMeta ? sourceMeta.getAttribute("content") : "";
@@ -148,7 +149,9 @@
       if (loaded) return;
       loaded = true;
       var accessibility = document.createElement("script");
-      accessibility.src = new URL("portal-accessibility.js", portalRoot).toString();
+      var accessibilityUrl = new URL("portal-accessibility.js", portalRoot);
+      if (releaseVersion) accessibilityUrl.searchParams.set("v", releaseVersion);
+      accessibility.src = accessibilityUrl.toString();
       accessibility.defer = true;
       document.head.appendChild(accessibility);
     }

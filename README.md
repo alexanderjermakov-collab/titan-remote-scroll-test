@@ -1,6 +1,6 @@
 # Sharp Life Portal — Titan OS multilingual mirror
 
-Sharp Life Portal test release 8.0.7 for Titan OS televisions, based on the public version 7 source.
+Sharp Life Portal test release 8.0.8 for Titan OS televisions, based on the public version 7 source.
 
 - 28 localized portal pages from the public source
 - a TV-friendly home page that writes the selected ISO language code to `?lang=`
@@ -10,6 +10,7 @@ Sharp Life Portal test release 8.0.7 for Titan OS televisions, based on the publ
 - automatic language selection through Titan SDK DeviceInfo
 - compatibility aliases including `sp` → `es`
 - Titan SDK text-to-speech support for focusable portal items
+- full-screen TTS reading for all visible Portal and E-Manual text, refreshed after page changes and scrolling
 - Android/TV remote support for UP, DOWN, LEFT, RIGHT, OK and BACK
 - BACK closes the portal from either home screen using the native Titan TV exit API when available
 - UP/DOWN fallback scrolling advances by one text line per key press

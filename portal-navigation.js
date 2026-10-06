@@ -3,7 +3,7 @@
 
   var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
-  var RELEASE_VERSION = "8.0.7";
+  var RELEASE_VERSION = "8.0.8";
   var RELEASE_DATE = "2026-10-06";
   var navigationScript = document.currentScript;
   var portalRoot = new URL("./", navigationScript && navigationScript.src ? navigationScript.src : window.location.href);
