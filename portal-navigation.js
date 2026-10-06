@@ -3,7 +3,7 @@
 
   var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
-  var RELEASE_VERSION = "8.0.5";
+  var RELEASE_VERSION = "8.0.6";
   var RELEASE_DATE = "2026-10-06";
   var navigationScript = document.currentScript;
   var portalRoot = new URL("./", navigationScript && navigationScript.src ? navigationScript.src : window.location.href);
@@ -73,6 +73,7 @@
       "html:not([data-sharp-manual]) .homepage-large #lifeapp h3 { display: none !important; }",
       "html:not([data-sharp-manual]) .homepage-large #lifeapp > p.btn-link, html:not([data-sharp-manual]) .homepage-large #some > p.btn-link { font-size: .88em !important; }",
       "html:not([data-sharp-manual]) .homepage-large .logo-con .app-name { font-size: 30px !important; line-height: 1.2 !important; }",
+      "html:not([data-sharp-manual]) .homepage-large .logo-con > img { width: auto !important; height: 22.5px !important; max-width: none !important; }",
       "#sharp-portal-top-controls { position: fixed; top: 14px; right: 18px; z-index: 2147483645; display: flex; align-items: center; gap: 12px; font-family: Roboto, Arial, sans-serif; }",
       "#sharp-portal-top-controls button, #sharp-portal-about .sharp-about-back { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 44px; min-height: 44px; border: 2px solid #69727a; border-radius: 11px; background: rgba(20, 23, 26, .94); color: #d1d1d1; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4); }",
       "#sharp-portal-top-controls button { padding: 5px 14px; font-family: Roboto, sans-serif; font-size: 16px; line-height: 1; font-weight: bold; }",
@@ -114,6 +115,7 @@
       "  #sharp-portal-exit-confirmation .sharp-exit-message { font-size: 23px; }",
       "  #sharp-portal-exit-confirmation button { min-width: 125px; font-size: 18px; }",
       "  html:not([data-sharp-manual]) .homepage-large .logo-con .app-name { font-size: 24px !important; line-height: 1.2 !important; }",
+      "  html:not([data-sharp-manual]) .homepage-large .logo-con > img { width: auto !important; height: 18px !important; }",
       "  #sharp-portal-top-controls { top: 8px; right: 10px; gap: 7px; }",
       "  #sharp-portal-top-controls button { height: 40px; min-height: 40px; padding: 4px 11px; font-size: 14px; }",
       "  #sharp-portal-top-controls .sharp-portal-back { width: 40px; }",
