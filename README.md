@@ -3,10 +3,10 @@
 Sharp Life Portal test release 8.0.8 for Titan OS televisions, based on the public version 7 source.
 
 - 28 localized portal pages from the public source
-- automatic Portal routing from the TV's configured `Product.language`, without a language-selection screen
+- automatic Portal routing from the TV's active menu/UI language, using native runtime signals before the Titan SDK `Product.language` fallback, without a language-selection screen
 - translated home-page promotional cards for all 28 supported language options
 - translated promotional detail windows, descriptions, feature lists and QR captions for all 28 supported language options
-- automatic language selection through Titan SDK DeviceInfo
+- automatic language refresh when the Portal returns from TV settings, with Titan SDK DeviceInfo retained as the compatibility fallback
 - compatibility aliases including `sp` → `es`
 - brand-aware Titan SDK text-to-speech support: explicit SDK speech on Philips and native ARIA reading on JVC
 - live TTS and Text Magnification state updates from Titan SDK accessibility settings
