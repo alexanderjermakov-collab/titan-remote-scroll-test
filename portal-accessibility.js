@@ -176,12 +176,32 @@
     speak(target.getAttribute("aria-label") || labelFor(target));
   }
 
+  function announceElementWhenReady(target) {
+    return initializeSdkAccessibility().then(function () {
+      if (!target || !target.isConnected || document.activeElement !== target) target = document.activeElement;
+      if (!target || target === document.body || target === document.documentElement) return false;
+      return speak(target.getAttribute("aria-label") || labelFor(target));
+    });
+  }
+
+  function announceInitialFocus() {
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        announceElementWhenReady(document.activeElement);
+      });
+    });
+  }
+
   function initialize() {
     if (window.SharpPortalCardLocalization) window.SharpPortalCardLocalization.apply(document.documentElement.lang);
     if (window.SharpPortalModalLocalization) window.SharpPortalModalLocalization.apply(document.documentElement.lang);
     prepareFocusableContent();
     document.addEventListener("focusin", handleFocus, true);
-    initializeSdkAccessibility();
+    window.addEventListener("sharp-life-portal:initial-focus", function (event) {
+      announceElementWhenReady(event.detail && event.detail.target ? event.detail.target : document.activeElement);
+    });
+    initializeSdkAccessibility().then(announceInitialFocus);
+    window.addEventListener("load", announceInitialFocus, { once: true });
     window.addEventListener("sharp-life-portal:device-ready", function (event) {
       if (event.detail && event.detail.brand) state.brand = event.detail.brand;
       state.mode = String(state.brand).toUpperCase().indexOf("JVC") !== -1 ? "native" : (state.ttsEnabled ? "sdk" : "none");
@@ -195,6 +215,7 @@
       getState: function () { return state; },
       refresh: initializeSdkAccessibility,
       speak: speak,
+      announceFocusedElement: function () { return announceElementWhenReady(document.activeElement); },
       getLastSpokenText: function () { return lastSpokenText; }
     };
     document.documentElement.setAttribute("data-sharp-tts-ready", "true");

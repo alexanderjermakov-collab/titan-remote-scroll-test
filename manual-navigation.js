@@ -135,13 +135,17 @@
     var isManualHome = Boolean(document.querySelector("#home.home-con"));
     var focusTarget = isManualHome
       ? document.querySelector("#home.home-con > a.items")
-      : document.querySelector("#sharp-portal-top-controls .sharp-portal-back");
+      : document.querySelector(".childlist a.childlist-item:not(.backlinks), .childlist > a:not(.backlinks), .im-content a.childlist-item:not(.backlinks)");
+    if (!focusTarget && !isManualHome) {
+      focusTarget = document.querySelector(".im-content .section-title, .im-content h2, .im-content h1");
+    }
     if (!focusTarget) return;
     focusTarget.setAttribute("tabindex", "0");
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
         try { focusTarget.focus({ preventScroll: true }); }
         catch (error) { focusTarget.focus(); }
+        window.dispatchEvent(new CustomEvent("sharp-life-portal:initial-focus", { detail: { target: focusTarget } }));
       });
     });
   }
