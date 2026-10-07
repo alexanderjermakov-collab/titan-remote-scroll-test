@@ -109,6 +109,19 @@
   };
   var focusBeforeExitDialog = null;
   var focusBeforeAboutDialog = null;
+  var announcedModalContent = "";
+
+  function cleanVisibleText(element) {
+    return String(element && (element.innerText || element.textContent) || "").replace(/\s+/g, " ").trim();
+  }
+
+  function announceCompleteText(target, text) {
+    text = String(text || "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    window.dispatchEvent(new CustomEvent("sharp-life-portal:initial-focus", {
+      detail: { target: target || document.activeElement, text: text }
+    }));
+  }
 
   function normalizedLanguage() {
     var value = String(document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
@@ -132,6 +145,8 @@
       "}",
       "html:not([data-sharp-manual]) .homepage-large #lifeapp h3 { display: none !important; }",
       "html:not([data-sharp-manual]) .homepage-large #lifeapp > p.btn-link, html:not([data-sharp-manual]) .homepage-large #some > p.btn-link { font-size: .88em !important; }",
+      "html:not([data-sharp-manual]) .homepage-large #lifeapp .text-con, html:not([data-sharp-manual]) .homepage-large #some .text-con { align-self: center !important; display: flex !important; align-items: center !important; height: 100% !important; }",
+      "html:not([data-sharp-manual]) .homepage-large #lifeapp .text-con h2, html:not([data-sharp-manual]) .homepage-large #some .text-con h2 { margin-top: 0 !important; margin-bottom: 0 !important; }",
       "html:not([data-sharp-manual]) .homepage-large .logo-con .app-name { font-size: 30px !important; line-height: 1.2 !important; }",
       "html:not([data-sharp-manual]) .homepage-large .logo-con > img { width: auto !important; height: 22.5px !important; max-width: none !important; }",
       "#sharp-portal-top-controls { position: fixed; top: 14px; right: 18px; z-index: 2147483645; display: flex; align-items: center; gap: 12px; font-family: Roboto, Arial, sans-serif; }",
@@ -309,7 +324,9 @@
     dialog.setAttribute("aria-hidden", "false");
     dialog.classList.add("sharp-dialog-open");
     document.documentElement.classList.add("sharp-about-active");
-    dialog.querySelector(".sharp-about-back").focus({ preventScroll: true });
+    var aboutBack = dialog.querySelector(".sharp-about-back");
+    aboutBack.focus({ preventScroll: true });
+    announceCompleteText(aboutBack, cleanVisibleText(dialog.querySelector(".sharp-about-panel")));
     return true;
   }
 
@@ -356,7 +373,20 @@
         image.setAttribute("aria-hidden", "true");
       }
     }
-    document.documentElement.classList.toggle("sharp-modal-active", Boolean(modal && modal.classList.contains("modal-on")));
+    var modalOpen = Boolean(modal && modal.classList.contains("modal-on"));
+    document.documentElement.classList.toggle("sharp-modal-active", modalOpen);
+    if (!modalOpen) {
+      announcedModalContent = "";
+      return;
+    }
+    var modalText = cleanVisibleText(modal);
+    var modalKey = String(modal.getAttribute("data-modal-id") || "") + "|" + modalText;
+    if (!modalText || modalKey === announcedModalContent) return;
+    announcedModalContent = modalKey;
+    window.requestAnimationFrame(function () {
+      var target = modal.querySelector(".btnlink, .close, [tabindex='0']") || document.activeElement;
+      announceCompleteText(target, modalText);
+    });
   }
 
   function observeModal() {
@@ -401,7 +431,9 @@
     dialog.setAttribute("aria-hidden", "false");
     focusBeforeExitDialog = document.activeElement;
     dialog.classList.add("sharp-dialog-open");
-    dialog.querySelector('[data-exit-action="cancel"]').focus({ preventScroll: true });
+    var cancel = dialog.querySelector('[data-exit-action="cancel"]');
+    cancel.focus({ preventScroll: true });
+    announceCompleteText(cancel, cleanVisibleText(dialog.querySelector(".sharp-exit-panel")));
     return true;
   }
 

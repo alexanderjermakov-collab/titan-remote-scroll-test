@@ -5,6 +5,7 @@
   var sdkReady = null;
   var lastSpokenText = "";
   var speechRequest = 0;
+  var explicitInitialAnnouncement = false;
   var unsubscribeTTS = null;
   var unsubscribeTM = null;
   var portalRoot = new URL("./", document.currentScript && document.currentScript.src ? document.currentScript.src : window.location.href);
@@ -26,13 +27,7 @@
   function labelFor(element) {
     var explicit = cleanText(element.getAttribute("aria-label"));
     if (explicit) return explicit;
-    var parts = [];
-    var nodes = element.querySelectorAll("h1, h2, h3, h4, h5, h6, .btn-link, .text-link-modal, .modelname");
-    for (var i = 0; i < nodes.length; i += 1) {
-      var text = cleanText(nodes[i].textContent);
-      if (text && parts.indexOf(text) === -1) parts.push(text);
-    }
-    return cleanText(parts.join(". ") || element.textContent);
+    return cleanText(element.innerText || element.textContent);
   }
 
   function prepareFocusableContent() {
@@ -176,8 +171,10 @@
     speak(target.getAttribute("aria-label") || labelFor(target));
   }
 
-  function announceElementWhenReady(target) {
+  function announceElementWhenReady(target, announcementText) {
     return initializeSdkAccessibility().then(function () {
+      announcementText = cleanText(announcementText);
+      if (announcementText) return speak(announcementText);
       if (!target || !target.isConnected || document.activeElement !== target) target = document.activeElement;
       if (!target || target === document.body || target === document.documentElement) return false;
       return speak(target.getAttribute("aria-label") || labelFor(target));
@@ -187,7 +184,11 @@
   function announceInitialFocus() {
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
-        announceElementWhenReady(document.activeElement);
+        if (explicitInitialAnnouncement) return;
+        var target = document.activeElement;
+        var initialText = target && target.getAttribute ? target.getAttribute("data-sharp-initial-tts-text") : "";
+        if (initialText) explicitInitialAnnouncement = true;
+        announceElementWhenReady(target, initialText || "");
       });
     });
   }
@@ -198,7 +199,9 @@
     prepareFocusableContent();
     document.addEventListener("focusin", handleFocus, true);
     window.addEventListener("sharp-life-portal:initial-focus", function (event) {
-      announceElementWhenReady(event.detail && event.detail.target ? event.detail.target : document.activeElement);
+      var detail = event.detail || {};
+      if (cleanText(detail.text)) explicitInitialAnnouncement = true;
+      announceElementWhenReady(detail.target || document.activeElement, detail.text || "");
     });
     initializeSdkAccessibility().then(announceInitialFocus);
     window.addEventListener("load", announceInitialFocus, { once: true });

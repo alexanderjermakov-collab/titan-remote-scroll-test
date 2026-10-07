@@ -133,19 +133,29 @@
 
   function focusManualDefault() {
     var isManualHome = Boolean(document.querySelector("#home.home-con"));
+    var articleContent = null;
     var focusTarget = isManualHome
       ? document.querySelector("#home.home-con > a.items")
       : document.querySelector(".childlist a.childlist-item:not(.backlinks), .childlist > a:not(.backlinks), .im-content a.childlist-item:not(.backlinks)");
     if (!focusTarget && !isManualHome) {
+      articleContent = document.querySelector(".im-content");
       focusTarget = document.querySelector(".im-content .section-title, .im-content h2, .im-content h1");
     }
     if (!focusTarget) return;
     focusTarget.setAttribute("tabindex", "0");
+    if (articleContent) {
+      focusTarget.setAttribute("data-sharp-initial-tts-text", String(articleContent.innerText || articleContent.textContent || "").replace(/\s+/g, " ").trim());
+    }
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
         try { focusTarget.focus({ preventScroll: true }); }
         catch (error) { focusTarget.focus(); }
-        window.dispatchEvent(new CustomEvent("sharp-life-portal:initial-focus", { detail: { target: focusTarget } }));
+        window.dispatchEvent(new CustomEvent("sharp-life-portal:initial-focus", {
+          detail: {
+            target: focusTarget,
+            text: articleContent ? String(articleContent.innerText || articleContent.textContent || "").replace(/\s+/g, " ").trim() : ""
+          }
+        }));
       });
     });
   }
