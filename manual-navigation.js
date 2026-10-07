@@ -176,6 +176,7 @@
     rewriteLinks();
     addFocusStyle();
     applyManualChrome();
+    document.documentElement.classList.add("sharp-manual-ready");
     focusManualDefault();
     window.addEventListener("load", function () {
       applyManualChrome();

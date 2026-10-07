@@ -233,32 +233,15 @@
     return code;
   }
 
-  function formatRate(value) {
-    if (value === null || value === undefined || value === "") return "—";
-    var number = Number(value);
-    return isFinite(number) ? String(Math.round(number * 100) / 100) + "×" : "—";
-  }
-
-  function formatVolume(value) {
-    if (value === null || value === undefined || value === "") return "—";
-    var number = Number(value);
-    if (!isFinite(number)) return "—";
-    if (number >= 0 && number <= 1) number *= 100;
-    return String(Math.round(number)) + "%";
-  }
-
   function updateAboutValues(dialog) {
     if (!dialog) return;
     var device = window.SharpLifePortalDevice || {};
     var accessibility = window.SharpLifePortalAccessibility || {};
-    var settings = accessibility.ttsSettings || {};
     var copy = ABOUT_SETTINGS_COPY[normalizedLanguage()] || ABOUT_SETTINGS_COPY.en;
     var values = {
       language: localizedDisplayName("language", device.language || document.documentElement.lang),
       country: localizedDisplayName("region", device.country),
       tts: accessibility.ttsEnabled ? copy[6] : copy[7],
-      rate: formatRate(settings.rate),
-      volume: formatVolume(settings.volume),
       magnification: accessibility.tmEnabled ? copy[6] : copy[7]
     };
     Object.keys(values).forEach(function (key) {
@@ -309,8 +292,6 @@
         '<dt data-about-label="0"></dt><dd data-about-value="language">—</dd>',
         '<dt data-about-label="1"></dt><dd data-about-value="country">—</dd>',
         '<dt data-about-label="2"></dt><dd data-about-value="tts">—</dd>',
-        '<dt data-about-label="3"></dt><dd data-about-value="rate">—</dd>',
-        '<dt data-about-label="4"></dt><dd data-about-value="volume">—</dd>',
         '<dt data-about-label="5"></dt><dd data-about-value="magnification">—</dd>',
         '</dl>',
         '<p class="sharp-about-details sharp-about-rights">All rights reserved.</p>',
