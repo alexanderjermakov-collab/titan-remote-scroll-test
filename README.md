@@ -3,14 +3,13 @@
 Sharp Life Portal test release 8.0.8 for Titan OS televisions, based on the public version 7 source.
 
 - 28 localized portal pages from the public source
-- a TV-friendly home page that writes the selected ISO language code to `?lang=`
-- a fully translated language-selection screen for all 28 supported language options
+- automatic Portal routing from the TV's configured `Product.language`, without a language-selection screen
 - translated home-page promotional cards for all 28 supported language options
 - translated promotional detail windows, descriptions, feature lists and QR captions for all 28 supported language options
 - automatic language selection through Titan SDK DeviceInfo
 - compatibility aliases including `sp` → `es`
-- Titan SDK text-to-speech support for focusable portal items
-- full-screen TTS reading for all visible Portal and E-Manual text, refreshed after page changes and scrolling
+- brand-aware Titan SDK text-to-speech support: explicit SDK speech on Philips and native ARIA reading on JVC
+- live TTS and Text Magnification state updates from Titan SDK accessibility settings
 - Android/TV remote support for UP, DOWN, LEFT, RIGHT, OK and BACK
 - BACK closes the portal from either home screen using the native Titan TV exit API when available
 - UP/DOWN fallback scrolling advances by one text line per key press
@@ -19,9 +18,9 @@ Sharp Life Portal test release 8.0.8 for Titan OS televisions, based on the publ
 - remote-control navigation and text-to-speech hooks inside e-Manual sections and articles
 - contextual hardware BACK navigation to the previous E-Manual page, with Portal Home as the fallback
 - visible top-right BACK controls throughout the Portal and E-Manual, including left-arrow controls in Portal detail windows
-- a fully localized About button and About window in all 28 Portal languages, with release, ownership, rights, and Sharp branding information
+- a fully localized About button and About window in all 28 Portal languages, including language, country, TTS, speech rate, speech volume and Text Magnification status
 - localized confirmation dialog before closing the Portal with the remote-control Back command
-- TV User Menu-style Sharp-red and lime focus visualization in the Portal and E-Manual
+- TV User Menu-style Sharp-red focus when TTS is off and Sharp-red/lime focus when TTS is on
 - dark-grey E-Manual background with white text to match the Portal home page
 - Roboto typography throughout every E-Manual page to match the Portal
 - matching title sizes for “Sharp Life Portal” and the localized Instruction Manual title

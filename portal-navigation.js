@@ -4,7 +4,7 @@
   var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
   var RELEASE_VERSION = "8.0.8";
-  var RELEASE_DATE = "2026-10-06";
+  var RELEASE_DATE = "2026-10-07";
   var navigationScript = document.currentScript;
   var portalRoot = new URL("./", navigationScript && navigationScript.src ? navigationScript.src : window.location.href);
   var backIconUrl = new URL("assets/back-arrow.svg", portalRoot).toString();
@@ -77,6 +77,36 @@
     sv: ["Om", "Versionsnummer", "Utgivningsdatum", "Ägare", "Alla rättigheter förbehållna.", "Tillbaka"],
     uk: ["Про портал", "Номер версії", "Дата випуску", "Власник", "Усі права захищено.", "Назад"]
   };
+  var ABOUT_SETTINGS_COPY = {
+    bg: ["Език", "Държава", "Текст към реч", "Скорост на речта", "Сила на речта", "Увеличаване на текста", "Вкл.", "Изкл."],
+    ca: ["Idioma", "País", "Text a veu", "Velocitat de veu", "Volum de veu", "Ampliació del text", "Activat", "Desactivat"],
+    cs: ["Jazyk", "Země", "Převod textu na řeč", "Rychlost řeči", "Hlasitost řeči", "Zvětšení textu", "Zapnuto", "Vypnuto"],
+    da: ["Sprog", "Land", "Tekst til tale", "Talehastighed", "Talelydstyrke", "Tekstforstørrelse", "Til", "Fra"],
+    de: ["Sprache", "Land", "Sprachausgabe", "Sprechgeschwindigkeit", "Sprachlautstärke", "Textvergrößerung", "Ein", "Aus"],
+    el: ["Γλώσσα", "Χώρα", "Κείμενο σε ομιλία", "Ταχύτητα ομιλίας", "Ένταση ομιλίας", "Μεγέθυνση κειμένου", "Ενεργό", "Ανενεργό"],
+    en: ["Language", "Country", "Text to Speech", "Speech rate", "Speech volume", "Text magnification", "On", "Off"],
+    es: ["Idioma", "País", "Texto a voz", "Velocidad de voz", "Volumen de voz", "Ampliación de texto", "Activado", "Desactivado"],
+    et: ["Keel", "Riik", "Kõnesüntees", "Kõne kiirus", "Kõne helitugevus", "Teksti suurendus", "Sees", "Väljas"],
+    fi: ["Kieli", "Maa", "Tekstistä puheeksi", "Puheen nopeus", "Puheen voimakkuus", "Tekstin suurennus", "Päällä", "Pois"],
+    fr: ["Langue", "Pays", "Synthèse vocale", "Débit vocal", "Volume vocal", "Agrandissement du texte", "Activé", "Désactivé"],
+    hr: ["Jezik", "Država", "Pretvaranje teksta u govor", "Brzina govora", "Glasnoća govora", "Povećanje teksta", "Uključeno", "Isključeno"],
+    hu: ["Nyelv", "Ország", "Szövegfelolvasás", "Beszédsebesség", "Beszédhangereje", "Szövegnagyítás", "Be", "Ki"],
+    it: ["Lingua", "Paese", "Sintesi vocale", "Velocità voce", "Volume voce", "Ingrandimento testo", "Attivo", "Disattivo"],
+    lt: ["Kalba", "Šalis", "Teksto skaitymas balsu", "Kalbos greitis", "Kalbos garsumas", "Teksto didinimas", "Įjungta", "Išjungta"],
+    lv: ["Valoda", "Valsts", "Teksta pārvēršana runā", "Runas ātrums", "Runas skaļums", "Teksta palielināšana", "Ieslēgts", "Izslēgts"],
+    nl: ["Taal", "Land", "Tekst-naar-spraak", "Spraaksnelheid", "Spraakvolume", "Tekstvergroting", "Aan", "Uit"],
+    no: ["Språk", "Land", "Tekst til tale", "Talehastighet", "Talevolum", "Tekstforstørrelse", "På", "Av"],
+    pl: ["Język", "Kraj", "Tekst na mowę", "Szybkość mowy", "Głośność mowy", "Powiększanie tekstu", "Wł.", "Wył."],
+    pt: ["Idioma", "País", "Texto para voz", "Velocidade da voz", "Volume da voz", "Ampliação de texto", "Ligado", "Desligado"],
+    "pt-pt": ["Idioma", "País", "Texto para voz", "Velocidade da voz", "Volume da voz", "Ampliação de texto", "Ligado", "Desligado"],
+    ro: ["Limbă", "Țară", "Text în vorbire", "Viteza vorbirii", "Volumul vorbirii", "Mărirea textului", "Pornit", "Oprit"],
+    ru: ["Язык", "Страна", "Преобразование текста в речь", "Скорость речи", "Громкость речи", "Увеличение текста", "Вкл.", "Выкл."],
+    sk: ["Jazyk", "Krajina", "Prevod textu na reč", "Rýchlosť reči", "Hlasitosť reči", "Zväčšenie textu", "Zapnuté", "Vypnuté"],
+    sl: ["Jezik", "Država", "Pretvorba besedila v govor", "Hitrost govora", "Glasnost govora", "Povečava besedila", "Vklopljeno", "Izklopljeno"],
+    sr: ["Jezik", "Država", "Pretvaranje teksta u govor", "Brzina govora", "Jačina govora", "Uvećanje teksta", "Uključeno", "Isključeno"],
+    sv: ["Språk", "Land", "Text till tal", "Talhastighet", "Talvolym", "Textförstoring", "På", "Av"],
+    uk: ["Мова", "Країна", "Перетворення тексту на мовлення", "Швидкість мовлення", "Гучність мовлення", "Збільшення тексту", "Увімк.", "Вимк."]
+  };
   var focusBeforeExitDialog = null;
   var focusBeforeAboutDialog = null;
 
@@ -115,23 +145,35 @@
       "#modal.modal-on .close .xlogo { width: 34px !important; height: 34px !important; }",
       "#sharp-portal-about { position: fixed; inset: 0; z-index: 2147483646; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, .76); font-family: Roboto, Arial, sans-serif; }",
       "#sharp-portal-about.sharp-dialog-open { display: flex; }",
-      "#sharp-portal-about .sharp-about-panel { position: relative; box-sizing: border-box; width: min(650px, 84vw); min-height: 360px; padding: 48px 56px 40px; border: 2px solid #69727a; border-radius: 12px; background: #30373c; color: #d1d1d1; font-family: Roboto, sans-serif; font-size: 16px; text-align: center; box-shadow: 0 18px 55px rgba(0,0,0,.75); }",
+      "#sharp-portal-about .sharp-about-panel { position: relative; box-sizing: border-box; width: min(720px, 88vw); max-height: 90vh; overflow: auto; padding: 42px 56px 34px; border: 2px solid #69727a; border-radius: 12px; background: #30373c; color: #d1d1d1; font-family: Roboto, sans-serif; font-size: 16px; text-align: center; box-shadow: 0 18px 55px rgba(0,0,0,.75); }",
       "#sharp-portal-about .sharp-about-panel, #sharp-portal-about .sharp-about-panel h2, #sharp-portal-about .sharp-about-panel p, #sharp-portal-about .sharp-about-panel strong, #sharp-portal-about .sharp-about-panel span { color: #d1d1d1 !important; }",
       "#sharp-portal-about .sharp-about-back { position: absolute; top: 16px; right: 16px; width: 44px; padding: 4px; }",
-      "#sharp-portal-about .sharp-about-logo { display: block; width: 170px; height: auto; margin: 18px auto 30px; }",
-      "#sharp-portal-about .sharp-about-title { margin: 0 0 22px; font-size: 1.44em; line-height: 1.2; font-weight: bold; }",
+      "#sharp-portal-about .sharp-about-logo { display: block; width: 150px; height: auto; margin: 12px auto 20px; }",
+      "#sharp-portal-about .sharp-about-title { margin: 0 0 16px; font-size: 1.44em; line-height: 1.2; font-weight: bold; }",
       "#sharp-portal-about .sharp-about-details { margin: 0; font-size: 1.1em; line-height: 1.55; font-weight: normal; }",
-      "#sharp-portal-about .sharp-about-rights { margin-top: 15px; }",
+      "#sharp-portal-about .sharp-about-system { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px 24px; width: min(520px, 100%); margin: 18px auto 0; padding-top: 16px; border-top: 1px solid #69727a; text-align: left; font-size: 1.02em; line-height: 1.3; }",
+      "#sharp-portal-about .sharp-about-system dt { margin: 0; color: #d1d1d1; font-weight: 600; }",
+      "#sharp-portal-about .sharp-about-system dd { margin: 0; color: #fff; font-weight: 700; text-align: right; }",
+      "#sharp-portal-about .sharp-about-rights { margin-top: 13px; font-size: .95em; }",
       "html:not([data-sharp-manual]) .homepage-app .content:focus,",
       "html:not([data-sharp-manual]) #modal .close:focus,",
       "html:not([data-sharp-manual]) button:focus,",
       "html:not([data-sharp-manual]) select:focus,",
       "html:not([data-sharp-manual]) [role='button']:focus {",
+      "  outline: 4px solid #ec1e3c !important;",
+      "  outline-offset: -4px !important;",
+      "  box-shadow: inset 0 0 0 999px rgba(236, 30, 60, 0.34), 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, 0.9) !important;",
+      "  transform: scale(1.018) !important;",
+      "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
+      "}",
+      "html[data-sharp-tts-state='enabled']:not([data-sharp-manual]) .homepage-app .content:focus,",
+      "html[data-sharp-tts-state='enabled']:not([data-sharp-manual]) #modal .close:focus,",
+      "html[data-sharp-tts-state='enabled']:not([data-sharp-manual]) button:focus,",
+      "html[data-sharp-tts-state='enabled']:not([data-sharp-manual]) select:focus,",
+      "html[data-sharp-tts-state='enabled']:not([data-sharp-manual]) [role='button']:focus {",
       "  outline: 3px solid #baff35 !important;",
       "  outline-offset: -7px !important;",
       "  box-shadow: inset 0 0 0 7px #baff35, inset 0 0 0 999px rgba(236, 30, 60, 0.28), 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, 0.9) !important;",
-      "  transform: scale(1.018) !important;",
-      "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
       "}",
       "#sharp-portal-exit-confirmation { position: fixed; inset: 0; z-index: 2147483646; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.72); font-family: Roboto, Arial, sans-serif; }",
       "#sharp-portal-exit-confirmation.sharp-dialog-open { display: flex; }",
@@ -154,7 +196,8 @@
       "  html:not([data-sharp-manual]) .homepage-large .logo-con { height: 130px !important; align-items: start !important; padding-top: 14px !important; }",
       "  html:not([data-sharp-manual]) .homepage-large .container-app { margin-top: 0 !important; }",
       "  html:not([data-sharp-manual]) #sharp-portal-top-controls { top: 70px; }",
-      "  #sharp-portal-about .sharp-about-panel { width: 92vw; min-height: 330px; padding: 42px 24px 30px; font-size: 15px; }",
+      "  #sharp-portal-about .sharp-about-panel { width: 92vw; padding: 42px 24px 26px; font-size: 15px; }",
+      "  #sharp-portal-about .sharp-about-system { gap: 6px 14px; }",
       "}"
     ].join("\n");
     document.head.appendChild(style);
@@ -177,8 +220,56 @@
     return true;
   }
 
+  function localizedDisplayName(type, value) {
+    var code = String(value || "").trim();
+    if (!code || code.toLowerCase() === "unknown") return "—";
+    try {
+      if (typeof Intl.DisplayNames === "function") {
+        var displayNames = new Intl.DisplayNames([normalizedLanguage()], { type: type });
+        var name = displayNames.of(type === "region" ? code.toUpperCase() : code);
+        if (name && name.toLowerCase() !== code.toLowerCase()) return name + " (" + code + ")";
+      }
+    } catch (error) {}
+    return code;
+  }
+
+  function formatRate(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    var number = Number(value);
+    return isFinite(number) ? String(Math.round(number * 100) / 100) + "×" : "—";
+  }
+
+  function formatVolume(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    var number = Number(value);
+    if (!isFinite(number)) return "—";
+    if (number >= 0 && number <= 1) number *= 100;
+    return String(Math.round(number)) + "%";
+  }
+
+  function updateAboutValues(dialog) {
+    if (!dialog) return;
+    var device = window.SharpLifePortalDevice || {};
+    var accessibility = window.SharpLifePortalAccessibility || {};
+    var settings = accessibility.ttsSettings || {};
+    var copy = ABOUT_SETTINGS_COPY[normalizedLanguage()] || ABOUT_SETTINGS_COPY.en;
+    var values = {
+      language: localizedDisplayName("language", device.language || document.documentElement.lang),
+      country: localizedDisplayName("region", device.country),
+      tts: accessibility.ttsEnabled ? copy[6] : copy[7],
+      rate: formatRate(settings.rate),
+      volume: formatVolume(settings.volume),
+      magnification: accessibility.tmEnabled ? copy[6] : copy[7]
+    };
+    Object.keys(values).forEach(function (key) {
+      var element = dialog.querySelector("[data-about-value='" + key + "']");
+      if (element) element.textContent = values[key];
+    });
+  }
+
   function applyAboutLocalization(dialog) {
     var text = ABOUT_COPY[normalizedLanguage()] || ABOUT_COPY.en;
+    var settingsText = ABOUT_SETTINGS_COPY[normalizedLanguage()] || ABOUT_SETTINGS_COPY.en;
     var aboutButton = document.querySelector("#sharp-portal-top-controls .sharp-portal-about-button");
     if (aboutButton) {
       aboutButton.textContent = text[0];
@@ -194,6 +285,11 @@
     dialog.querySelector(".sharp-about-release-label").textContent = text[2];
     dialog.querySelector(".sharp-about-owner-label").textContent = text[3];
     dialog.querySelector(".sharp-about-rights").textContent = text[4];
+    var labels = dialog.querySelectorAll("[data-about-label]");
+    for (var i = 0; i < labels.length; i += 1) {
+      labels[i].textContent = settingsText[Number(labels[i].getAttribute("data-about-label"))];
+    }
+    updateAboutValues(dialog);
   }
 
   function showAboutDialog() {
@@ -209,6 +305,14 @@
         '<img class="sharp-about-logo" alt="Sharp">',
         '<h2 class="sharp-about-title">Sharp Life Portal</h2>',
         '<p class="sharp-about-details"><span class="sharp-about-version-label"></span>: <strong class="sharp-about-version"></strong><br><span class="sharp-about-release-label"></span>: <span class="sharp-about-release"></span><br><span class="sharp-about-owner-label"></span>: <span class="sharp-about-owner">Sharp Corporation</span></p>',
+        '<dl class="sharp-about-system">',
+        '<dt data-about-label="0"></dt><dd data-about-value="language">—</dd>',
+        '<dt data-about-label="1"></dt><dd data-about-value="country">—</dd>',
+        '<dt data-about-label="2"></dt><dd data-about-value="tts">—</dd>',
+        '<dt data-about-label="3"></dt><dd data-about-value="rate">—</dd>',
+        '<dt data-about-label="4"></dt><dd data-about-value="volume">—</dd>',
+        '<dt data-about-label="5"></dt><dd data-about-value="magnification">—</dd>',
+        '</dl>',
         '<p class="sharp-about-details sharp-about-rights">All rights reserved.</p>',
         '</div>'
       ].join("");
@@ -585,6 +689,12 @@
     }
     addTopControls();
     observeModal();
+    window.addEventListener("sharp-life-portal:device-ready", function () {
+      applyAboutLocalization(document.getElementById("sharp-portal-about"));
+    });
+    window.addEventListener("sharp-life-portal:accessibility-ready", function () {
+      updateAboutValues(document.getElementById("sharp-portal-about"));
+    });
   }
 
   addPortalUiStyles();
