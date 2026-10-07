@@ -85,11 +85,11 @@
 
     var parts = url.pathname.split("/").filter(Boolean);
     var current = parts.length ? parts[parts.length - 1].toLowerCase() : "";
-    if (SUPPORTED_LANGUAGES[current] && current === language) return false;
+    if (SUPPORTED_LANGUAGES[current] && current === language && url.searchParams.get("lang") === language) return false;
     if (SUPPORTED_LANGUAGES[current]) parts.pop();
     parts.push(language);
     url.pathname = "/" + parts.join("/") + "/";
-    if (url.searchParams.has("lang")) url.searchParams.set("lang", language);
+    url.searchParams.set("lang", language);
     window.location.replace(url.toString());
     return true;
   }
@@ -126,6 +126,7 @@
     }
 
     var product = result.info.Product || {};
+    var channel = result.info.Channel || {};
     var language = normalizeLanguage(requestedLanguage || product.language);
     var manualVersion = chooseManualVersion(result.info);
     var manualUrl = updateInstructionManual(language, manualVersion);
@@ -134,14 +135,13 @@
       language: language,
       manualVersion: manualVersion,
       manualUrl: manualUrl,
-      brand: product.brand || "unknown",
+      brand: channel.brand || product.brand || "unknown",
       country: product.country || "unknown",
       platform: product.platform || "unknown"
     };
 
     publishState(detail);
     console.info("Sharp Life Portal: Titan device settings applied.", detail);
-    if (document.documentElement.hasAttribute("data-language-selector") && !requestedLanguage) return;
     redirectToLocalizedPortal(language);
   }
 
