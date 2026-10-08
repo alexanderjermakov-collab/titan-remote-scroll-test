@@ -1,18 +1,9 @@
-# Sharp Life Portal V8.0.9
+# Sharp Life Portal V8.0.9 — corrected baseline
 
-Release date: 8 October 2026
+Based on the last pre-merge V8.0.8 source, commit 5598cee9 (7 October 2026). The previous V8.0.9 had inherited regressed SDK and About implementations from a merge.
 
-Based on the existing V8.0.8 Portal code and its accessibility fixes.
+Only requested changes are applied: Turkish Portal translations; Norwegian Bokmål translations and language aliases; restored Norwegian Home images, backgrounds and QR codes; About version 8.0.9 and release date 8 October 2026; updated cache identifiers for changed scripts.
 
-- Added Turkish Portal Home cards, product details, QR captions, About and exit dialogs.
-- Completed Norwegian Bokmål Portal Home and product details.
-- Restored missing Norwegian banner backgrounds, product images and QR codes from the working shared assets.
-- Mapped Norwegian `nb-NO`, `nb`, `nn-NO` and `nor` language identifiers to the Norwegian Portal; added Turkish `tr-TR` and `tur` recognition.
-- About displays version 8.0.9 and release date 2026-10-08 (these values were already present in the inherited source and were verified).
-- Updated entry-script and dynamically loaded translation-script cache keys.
+The V8.0.8 Titan SDK language and accessibility code is retained. About reads SharpLifePortalDevice and SharpLifePortalAccessibility; Speech Rate and Speech Volume rows remain absent. The English manual remains available for Turkish users; no Turkish manual translation is included.
 
-Turkish Portal users open the existing English Instruction Manual because no Turkish manual is bundled. Norwegian users retain the Norwegian manual. No new manual translation is included in this release.
-
-Validation: JavaScript syntax checks; runtime language-alias and card-localization checks; all nine Home cards present in both entries; no empty image/background references; referenced local images and scripts exist. Physical Titan TV and visual browser verification remain pending.
-
-Publication target: https://alexanderjermakov-collab.github.io/titan-remote-scroll-test/?release=8.0.9
+Validation: JavaScript syntax; About language and TTS On/Off with SDK-backed state fixtures; absence of rate/volume rows; accessibility implementation equal to V8.0.8 except translation cache URLs. Physical TV validation remains required.

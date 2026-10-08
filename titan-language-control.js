@@ -8,18 +8,22 @@
     lt: true, lv: true, nl: true, no: true, pl: true, pt: true, "pt-pt": true,
     ro: true, ru: true, sk: true, sl: true, sr: true, sv: true, tr: true, uk: true
   };
+  var refreshInProgress = false;
+  var refreshQueued = false;
 
-  function normalizeLanguage(value) {
+  function supportedLanguage(value) {
     var raw = String(value || "").trim().toLowerCase().replace(/_/g, "-");
     var aliases = { cz: "cs", dk: "da", gr: "el", nb: "no", nn: "no", nor: "no", tur: "tr", sp: "es", ua: "uk" };
-
     if (aliases[raw]) raw = aliases[raw];
     if (raw.indexOf("pt-pt") === 0) return "pt-pt";
     if (raw.indexOf("pt-") === 0) return "pt";
-
     var base = raw.split("-")[0];
     if (aliases[base]) base = aliases[base];
-    return SUPPORTED_LANGUAGES[base] ? base : DEFAULT_LANGUAGE;
+    return SUPPORTED_LANGUAGES[base] ? base : null;
+  }
+
+  function normalizeLanguage(value) {
+    return supportedLanguage(value) || DEFAULT_LANGUAGE;
   }
 
   function isLocalTestHost() {
@@ -41,46 +45,71 @@
     };
   }
 
-  function waitForTitanSDK(timeout) {
-    var started = Date.now();
-    return new Promise(function (resolve) {
-      function check() {
-        if (window.TitanSDK) { resolve(window.TitanSDK); return; }
-        if (Date.now() - started >= timeout) { resolve(null); return; }
-        window.setTimeout(check, 50);
-      }
-      check();
-    });
-  }
-
   async function readDeviceInfo() {
     var override = testOverrides();
     if (override) return { info: override, source: "local-test" };
-
-    await waitForTitanSDK(3000);
-
-    if (!window.TitanSDK || !window.TitanSDK.deviceInfo) {
-      throw new Error("TitanSDK is not available");
-    }
-
+    if (!window.TitanSDK || !window.TitanSDK.deviceInfo) throw new Error("TitanSDK is not available");
     if (window.TitanSDK.isReady && typeof window.TitanSDK.isReady.then === "function") await window.TitanSDK.isReady;
-
-    return {
-      info: await window.TitanSDK.deviceInfo.getDeviceInfo(),
-      source: "titan-sdk"
-    };
+    return { info: await window.TitanSDK.deviceInfo.getDeviceInfo(), source: "titan-sdk" };
   }
 
-  function chooseManualVersion(info) {
-    // This portal copy is based on the official Titan portal whose e-Manual is titan101.
-    // titan1 and titan2 are Portal entry points, not e-Manual pages.
-    return "titan101";
+  function addLanguageCandidate(candidates, value, source) {
+    var language = supportedLanguage(value);
+    if (!language) return;
+    for (var i = 0; i < candidates.length; i += 1) {
+      if (candidates[i].language === language) return;
+    }
+    candidates.push({ language: language, raw: String(value), source: source });
+  }
+
+  function addObjectLanguageCandidates(candidates, object, source) {
+    if (!object || typeof object !== "object") return;
+    var keys = [
+      "menuLanguage", "menu_language", "uiLanguage", "ui_language",
+      "systemLanguage", "system_language", "language", "locale",
+      "MENU_LANGUAGE", "UI_LANGUAGE", "SYSTEM_LANGUAGE", "LANGUAGE", "LOCALE"
+    ];
+    for (var i = 0; i < keys.length; i += 1) {
+      try { addLanguageCandidate(candidates, object[keys[i]], source + "." + keys[i]); }
+      catch (error) {}
+    }
+  }
+
+  function activeUiLanguage() {
+    var candidates = [];
+    var params = new URLSearchParams(window.location.search);
+    if (isLocalTestHost()) addLanguageCandidate(candidates, params.get("titan_test_ui_language"), "local-test.ui-language");
+    addLanguageCandidate(candidates, params.get("uiLanguage") || params.get("ui_language"), "url.ui-language");
+    addLanguageCandidate(candidates, params.get("locale"), "url.locale");
+
+    if (typeof window.getPlatformConfig === "function") {
+      try {
+        var platformConfig = window.getPlatformConfig();
+        if (typeof platformConfig === "string") platformConfig = JSON.parse(platformConfig);
+        addObjectLanguageCandidates(candidates, platformConfig, "platform");
+        addObjectLanguageCandidates(candidates, platformConfig && platformConfig.Product, "platform.Product");
+        addObjectLanguageCandidates(candidates, platformConfig && platformConfig.product, "platform.product");
+        addObjectLanguageCandidates(candidates, platformConfig && platformConfig.Device, "platform.Device");
+        addObjectLanguageCandidates(candidates, platformConfig && platformConfig.device, "platform.device");
+      } catch (error) {}
+    }
+
+    var nav = window.navigator || {};
+    addLanguageCandidate(candidates, nav.userLanguage, "navigator.userLanguage");
+    addLanguageCandidate(candidates, nav.systemLanguage, "navigator.systemLanguage");
+    addLanguageCandidate(candidates, nav.browserLanguage, "navigator.browserLanguage");
+    if (nav.languages && nav.languages.length) {
+      for (var i = 0; i < nav.languages.length; i += 1) addLanguageCandidate(candidates, nav.languages[i], "navigator.languages[" + i + "]");
+    }
+    addLanguageCandidate(candidates, nav.language, "navigator.language");
+    try { addLanguageCandidate(candidates, Intl.DateTimeFormat().resolvedOptions().locale, "Intl.locale"); }
+    catch (error) {}
+    return candidates.length ? candidates[0] : null;
   }
 
   function updateInstructionManual(language, version) {
     var manual = document.getElementById("instructionmanual");
     if (!manual) return null;
-    // No Turkish manual is bundled: keep the existing English manual accessible.
     var manualLanguage = language === "tr" ? "en" : language === "pt-pt" ? "pt" : language;
     var url = new URL("../manual/" + version + "/" + encodeURIComponent(manualLanguage) + "/", window.location.href);
     url.searchParams.set("portalLang", language);
@@ -93,11 +122,11 @@
     var url = new URL(window.location.href);
     var parts = url.pathname.split("/").filter(Boolean);
     var current = parts.length ? parts[parts.length - 1].toLowerCase() : "";
-    if (SUPPORTED_LANGUAGES[current] && current === language && url.searchParams.get("lang") === language) return false;
+    if (SUPPORTED_LANGUAGES[current] && current === language) return false;
     if (SUPPORTED_LANGUAGES[current]) parts.pop();
     parts.push(language);
     url.pathname = "/" + parts.join("/") + "/";
-    url.searchParams.set("lang", language);
+    url.searchParams.delete("lang");
     window.location.replace(url.toString());
     return true;
   }
@@ -106,6 +135,7 @@
     window.SharpLifePortalDevice = detail;
     document.documentElement.setAttribute("lang", detail.language);
     document.documentElement.setAttribute("data-titan-language", detail.language);
+    document.documentElement.setAttribute("data-titan-language-source", detail.languageSource);
     document.documentElement.setAttribute("data-titan-country", detail.country);
     document.documentElement.setAttribute("data-titan-brand", detail.brand);
     document.documentElement.setAttribute("data-titan-manual-version", detail.manualVersion);
@@ -113,6 +143,8 @@
   }
 
   async function initialize() {
+    if (refreshInProgress) { refreshQueued = true; return; }
+    refreshInProgress = true;
     var params = new URLSearchParams(window.location.search);
     var requestedLanguage = params.get("lang");
     var result;
@@ -123,11 +155,10 @@
       result = {
         source: "fallback",
         info: {
+          Channel: { brand: "unknown" },
           Product: {
-            brand: "unknown",
             country: "unknown",
-            language: new URLSearchParams(window.location.search).get("lang") ||
-              document.documentElement.lang || navigator.language || DEFAULT_LANGUAGE,
+            language: requestedLanguage || document.documentElement.lang || navigator.language || DEFAULT_LANGUAGE,
             platform: "unknown"
           },
           Capability: {}
@@ -135,16 +166,20 @@
       };
     }
 
-    var product = result.info.Product || {};
     var channel = result.info.Channel || {};
-    var language = normalizeLanguage(requestedLanguage || product.language);
-    var manualVersion = chooseManualVersion(result.info);
-    var manualUrl = updateInstructionManual(language, manualVersion);
+    var product = result.info.Product || {};
+    var uiLanguage = activeUiLanguage();
+    var languageSource = requestedLanguage ? "url.lang" : (uiLanguage ? uiLanguage.source : "titan-sdk.Product.language");
+    var language = normalizeLanguage(requestedLanguage || (uiLanguage && uiLanguage.language) || product.language);
+    var manualVersion = "titan101";
     var detail = {
       source: result.source,
       language: language,
+      languageSource: languageSource,
+      sdkLanguage: product.language || null,
+      runtimeLanguage: uiLanguage ? uiLanguage.raw : null,
       manualVersion: manualVersion,
-      manualUrl: manualUrl,
+      manualUrl: updateInstructionManual(language, manualVersion),
       brand: channel.brand || product.brand || "unknown",
       country: product.country || "unknown",
       platform: product.platform || "unknown"
@@ -153,11 +188,18 @@
     publishState(detail);
     console.info("Sharp Life Portal: Titan device settings applied.", detail);
     redirectToLocalizedPortal(language);
+    refreshInProgress = false;
+    if (refreshQueued) { refreshQueued = false; initialize(); }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialize, { once: true });
-  } else {
+  function scheduleRefresh() {
+    if (document.visibilityState && document.visibilityState !== "visible") return;
     initialize();
   }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  else initialize();
+  document.addEventListener("visibilitychange", scheduleRefresh);
+  window.addEventListener("pageshow", scheduleRefresh);
+  window.addEventListener("languagechange", scheduleRefresh);
 })();

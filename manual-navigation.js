@@ -88,8 +88,8 @@
       "html[data-sharp-manual] #home.home-con .sectitle { display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important; width: 100% !important; min-height: 82px !important; margin: 0 !important; padding: 16px 20px !important; border-top: 1px solid #394247 !important; background-image: linear-gradient(to right, #253135, #262f34, #282e32, #282c30, #292b2e) !important; color: #d1d1d1 !important; font-size: 24px !important; line-height: 1.2 !important; font-weight: 700 !important; text-align: center !important; }",
       "@media (max-width: 700px) { html[data-sharp-manual] header.header { padding: 12px 25px !important; } html[data-sharp-manual] header.header .model { font-size: 24px !important; } html[data-sharp-manual] #home.home-con { padding-top: calc(10vh + 145px) !important; } html[data-sharp-manual] #home.home-con .icon { font-size: 105px !important; } html[data-sharp-manual] #home.home-con .sectitle { font-size: 16px !important; } }",
       "html[data-sharp-manual] a:focus, html[data-sharp-manual] button:focus, html[data-sharp-manual] [role='button']:focus, html[data-sharp-manual] [tabindex]:focus {",
-      "  outline: 3px solid #ec1e3c !important;",
-      "  outline-offset: -5px !important;",
+      "  outline: 4px solid #ec1e3c !important;",
+      "  outline-offset: -4px !important;",
       "  background-color: #ec1e3c !important;",
       "  color: #fff !important;",
       "  box-shadow: 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, 0.9) !important;",
@@ -97,12 +97,12 @@
       "  transition: transform 120ms ease, box-shadow 120ms ease !important;",
       "}",
       "html[data-sharp-manual] a:focus .item-con, html[data-sharp-manual] [tabindex]:focus .item-con { background-color: #ec1e3c !important; }",
-      "html[data-sharp-manual] #home.home-con > a.items:focus { outline: 3px solid #ec1e3c !important; outline-offset: -5px !important; background: transparent !important; box-shadow: 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, .9) !important; transform: scale(1.018) !important; }",
+      "html[data-sharp-manual] #home.home-con > a.items:focus { outline: 4px solid #ec1e3c !important; outline-offset: -4px !important; background: transparent !important; box-shadow: 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, .9) !important; transform: scale(1.018) !important; }",
       "html[data-sharp-manual] #home.home-con > a.items:focus .item-con { background-color: transparent !important; }",
-      "html[data-sharp-manual] #home.home-con > a.items:focus::after { position: absolute !important; inset: 0 !important; z-index: 5 !important; display: block !important; border-radius: 5px !important; box-shadow: inset 0 0 0 999px rgba(236, 30, 60, .34) !important; content: '' !important; pointer-events: none !important; }",
-      "html[data-sharp-manual][data-sharp-tts-enabled='true'] a:focus, html[data-sharp-manual][data-sharp-tts-enabled='true'] button:focus, html[data-sharp-manual][data-sharp-tts-enabled='true'] [role='button']:focus, html[data-sharp-manual][data-sharp-tts-enabled='true'] [tabindex]:focus { outline-color: #baff35 !important; outline-offset: -7px !important; box-shadow: inset 0 0 0 7px #baff35, 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, 0.9) !important; }",
-      "html[data-sharp-manual][data-sharp-tts-enabled='true'] #home.home-con > a.items:focus { outline-color: #baff35 !important; outline-offset: -7px !important; }",
-      "html[data-sharp-manual][data-sharp-tts-enabled='true'] #home.home-con > a.items:focus::after { box-shadow: inset 0 0 0 7px #baff35, inset 0 0 0 999px rgba(236, 30, 60, .28) !important; }"
+      "html[data-sharp-manual] #home.home-con > a.items:focus::after { position: absolute !important; inset: 0 !important; z-index: 5 !important; display: block !important; border-radius: 5px !important; box-shadow: inset 0 0 0 999px rgba(236, 30, 60, .28) !important; content: '' !important; pointer-events: none !important; }",
+      "html[data-sharp-manual][data-sharp-tts-state='enabled'] a:focus, html[data-sharp-manual][data-sharp-tts-state='enabled'] button:focus, html[data-sharp-manual][data-sharp-tts-state='enabled'] [role='button']:focus, html[data-sharp-manual][data-sharp-tts-state='enabled'] [tabindex]:focus { outline: 3px solid #baff35 !important; outline-offset: -7px !important; box-shadow: inset 0 0 0 7px #baff35, 0 0 0 4px #ec1e3c, 0 0 18px rgba(236, 30, 60, .9) !important; }",
+      "html[data-sharp-manual][data-sharp-tts-state='enabled'] #home.home-con > a.items:focus { outline: 3px solid #baff35 !important; outline-offset: -7px !important; }",
+      "html[data-sharp-manual][data-sharp-tts-state='enabled'] #home.home-con > a.items:focus::after { box-shadow: inset 0 0 0 7px #baff35, inset 0 0 0 999px rgba(236, 30, 60, .28) !important; }"
     ].join("\n");
     document.head.appendChild(style);
   }
@@ -133,15 +133,29 @@
 
   function focusManualDefault() {
     var isManualHome = Boolean(document.querySelector("#home.home-con"));
+    var articleContent = null;
     var focusTarget = isManualHome
       ? document.querySelector("#home.home-con > a.items")
-      : document.querySelector("#sharp-portal-top-controls .sharp-portal-back");
+      : document.querySelector(".childlist a.childlist-item:not(.backlinks), .childlist > a:not(.backlinks), .im-content a.childlist-item:not(.backlinks)");
+    if (!focusTarget && !isManualHome) {
+      articleContent = document.querySelector(".im-content");
+      focusTarget = document.querySelector(".im-content .section-title, .im-content h2, .im-content h1");
+    }
     if (!focusTarget) return;
     focusTarget.setAttribute("tabindex", "0");
+    if (articleContent) {
+      focusTarget.setAttribute("data-sharp-initial-tts-text", String(articleContent.innerText || articleContent.textContent || "").replace(/\s+/g, " ").trim());
+    }
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
         try { focusTarget.focus({ preventScroll: true }); }
         catch (error) { focusTarget.focus(); }
+        window.dispatchEvent(new CustomEvent("sharp-life-portal:initial-focus", {
+          detail: {
+            target: focusTarget,
+            text: articleContent ? String(articleContent.innerText || articleContent.textContent || "").replace(/\s+/g, " ").trim() : ""
+          }
+        }));
       });
     });
   }
@@ -176,6 +190,7 @@
     rewriteLinks();
     addFocusStyle();
     applyManualChrome();
+    document.documentElement.classList.add("sharp-manual-ready");
     focusManualDefault();
     window.addEventListener("load", function () {
       applyManualChrome();
