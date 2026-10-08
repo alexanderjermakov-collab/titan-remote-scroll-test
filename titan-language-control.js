@@ -2,7 +2,6 @@
   "use strict";
 
   var DEFAULT_LANGUAGE = "en";
-  var LIVE_PORTAL_HOST = "data.umc-poland.com";
   var SUPPORTED_LANGUAGES = {
     bg: true, ca: true, cs: true, da: true, de: true, el: true, en: true,
     es: true, et: true, fi: true, fr: true, hr: true, hu: true, it: true,
@@ -23,32 +22,48 @@
     return SUPPORTED_LANGUAGES[base] ? base : DEFAULT_LANGUAGE;
   }
 
+  function isLocalTestHost() {
+    return window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  }
+
   function testOverrides() {
-    // Local-only test hook. It is ignored on the production host.
-    if (window.location.hostname === LIVE_PORTAL_HOST) return null;
+    if (!isLocalTestHost()) return null;
     var params = new URLSearchParams(window.location.search);
-    if (!params.has("titan_test_language") && !params.has("titan_test_uhd")) return null;
+    if (!params.has("titan_test_language") && !params.has("titan_test_country") && !params.has("titan_test_brand")) return null;
     return {
+      Channel: { brand: params.get("titan_test_brand") || "Philips", vendor: "local-test" },
       Product: {
-        brand: "Sharp",
         country: params.get("titan_test_country") || "DE",
         language: params.get("titan_test_language") || DEFAULT_LANGUAGE,
         platform: params.get("titan_test_platform") || "Sharp Titan test"
       },
-      Capability: {
-        supportUHD: params.get("titan_test_uhd") !== "false",
-        supportFHD: true
-      }
+      Capability: {}
     };
+  }
+
+  function waitForTitanSDK(timeout) {
+    var started = Date.now();
+    return new Promise(function (resolve) {
+      function check() {
+        if (window.TitanSDK) { resolve(window.TitanSDK); return; }
+        if (Date.now() - started >= timeout) { resolve(null); return; }
+        window.setTimeout(check, 50);
+      }
+      check();
+    });
   }
 
   async function readDeviceInfo() {
     var override = testOverrides();
     if (override) return { info: override, source: "local-test" };
 
+    await waitForTitanSDK(3000);
+
     if (!window.TitanSDK || !window.TitanSDK.deviceInfo) {
       throw new Error("TitanSDK is not available");
     }
+
+    if (window.TitanSDK.isReady && typeof window.TitanSDK.isReady.then === "function") await window.TitanSDK.isReady;
 
     return {
       info: await window.TitanSDK.deviceInfo.getDeviceInfo(),
@@ -75,14 +90,6 @@
 
   function redirectToLocalizedPortal(language) {
     var url = new URL(window.location.href);
-    if (window.location.hostname === LIVE_PORTAL_HOST) {
-      var liveCurrent = normalizeLanguage(url.searchParams.get("lang") || document.documentElement.lang);
-      if (liveCurrent === language && url.searchParams.get("lang") === language) return false;
-      url.searchParams.set("lang", language);
-      window.location.replace(url.toString());
-      return true;
-    }
-
     var parts = url.pathname.split("/").filter(Boolean);
     var current = parts.length ? parts[parts.length - 1].toLowerCase() : "";
     if (SUPPORTED_LANGUAGES[current] && current === language && url.searchParams.get("lang") === language) return false;
@@ -98,6 +105,8 @@
     window.SharpLifePortalDevice = detail;
     document.documentElement.setAttribute("lang", detail.language);
     document.documentElement.setAttribute("data-titan-language", detail.language);
+    document.documentElement.setAttribute("data-titan-country", detail.country);
+    document.documentElement.setAttribute("data-titan-brand", detail.brand);
     document.documentElement.setAttribute("data-titan-manual-version", detail.manualVersion);
     window.dispatchEvent(new CustomEvent("sharp-life-portal:device-ready", { detail: detail }));
   }

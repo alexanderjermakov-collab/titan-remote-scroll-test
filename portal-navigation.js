@@ -4,7 +4,7 @@
   var DEFAULT_LINE_SCROLL_STEP = 40;
   var SMOOTH_SCROLL = "smooth";
   var RELEASE_VERSION = "8.0.9";
-  var RELEASE_DATE = "2026-10-07";
+  var RELEASE_DATE = "2026-10-08";
   var navigationScript = document.currentScript;
   var portalRoot = new URL("./", navigationScript && navigationScript.src ? navigationScript.src : window.location.href);
   var backIconUrl = new URL("assets/back-arrow.svg", portalRoot).toString();
@@ -232,8 +232,18 @@
     return code;
   }
 
-  function runtimeValue(value, unavailable) {
-    return value === null || typeof value === "undefined" || value === "" ? unavailable : String(value);
+  function formatSpeechRate(value, unavailable) {
+    if (value === null || typeof value === "undefined" || value === "") return unavailable;
+    var number = Number(value);
+    return isFinite(number) ? String(Math.round(number * 100) / 100) + "×" : unavailable;
+  }
+
+  function formatSpeechVolume(value, unavailable) {
+    if (value === null || typeof value === "undefined" || value === "") return unavailable;
+    var number = Number(value);
+    if (!isFinite(number)) return unavailable;
+    if (number >= 0 && number <= 1) number *= 100;
+    return String(Math.round(number)) + "%";
   }
 
   function updateAboutRuntime(dialog) {
@@ -248,8 +258,8 @@
       language: displayName(language, "language") || unavailable,
       country: displayName(country, "region") || unavailable,
       tts: state.ttsEnabled ? labels[6] : labels[7],
-      rate: runtimeValue(state.speechRate, unavailable),
-      volume: runtimeValue(state.speechVolume, unavailable),
+      rate: formatSpeechRate(state.speechRate, unavailable),
+      volume: formatSpeechVolume(state.speechVolume, unavailable),
       magnification: state.textMagnificationEnabled ? labels[6] : labels[7]
     };
     var keys = ["language", "country", "tts", "rate", "volume", "magnification"];

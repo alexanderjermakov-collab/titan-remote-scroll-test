@@ -7,6 +7,10 @@
   var lastScreenText = "";
   var screenReadTimer = null;
   var speechRequest = 0;
+  var unsubscribeTTS = null;
+  var unsubscribeTTSConfiguration = null;
+  var unsubscribeTM = null;
+  var unsubscribeTMConfiguration = null;
   var accessibilityScript = document.currentScript;
   var portalRoot = new URL("./", accessibilityScript && accessibilityScript.src ? accessibilityScript.src : window.location.href);
   var runtime = {
@@ -46,6 +50,35 @@
     return locale.length > 1 ? locale[locale.length - 1].toUpperCase() : "unknown";
   }
 
+  function isLocalTestHost() {
+    return window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  }
+
+  function localTestSettings() {
+    if (!isLocalTestHost()) return null;
+    var params = new URLSearchParams(window.location.search);
+    if (!params.has("titan_test_tts") && !params.has("titan_test_tm")) return null;
+    return {
+      ttsEnabled: params.get("titan_test_tts") === "on",
+      speechRate: Number(params.get("titan_test_rate") || 1),
+      speechVolume: Number(params.get("titan_test_volume") || 0.8),
+      tmEnabled: params.get("titan_test_tm") === "on",
+      tmScale: Number(params.get("titan_test_scale") || 1.25)
+    };
+  }
+
+  function waitForTitanSDK(timeout) {
+    var started = Date.now();
+    return new Promise(function (resolve) {
+      function check() {
+        if (window.TitanSDK) { resolve(window.TitanSDK); return; }
+        if (Date.now() - started >= timeout) { resolve(null); return; }
+        window.setTimeout(check, 50);
+      }
+      check();
+    });
+  }
+
   function publicRuntime() {
     var copy = {};
     Object.keys(runtime).forEach(function (key) { copy[key] = runtime[key]; });
@@ -65,10 +98,22 @@
   function publishRuntime(patch) {
     if (patch) Object.keys(patch).forEach(function (key) { runtime[key] = patch[key]; });
     document.documentElement.setAttribute("data-sharp-tts-enabled", runtime.ttsEnabled ? "true" : "false");
+    document.documentElement.setAttribute("data-sharp-tts-state", runtime.ttsSupported ? (runtime.ttsEnabled ? "enabled" : "disabled") : "unavailable");
     document.documentElement.setAttribute("data-sharp-tts-driver", runtime.ttsDriver);
     applyTextMagnification();
     window.SharpPortalRuntime = publicRuntime();
+    window.SharpLifePortalAccessibility = {
+      brand: runtime.brand,
+      mode: runtime.ttsDriver,
+      ttsSupported: runtime.ttsSupported,
+      ttsEnabled: runtime.ttsEnabled,
+      ttsSettings: { enabled: runtime.ttsEnabled, rate: runtime.speechRate, volume: runtime.speechVolume },
+      tmSupported: runtime.textMagnificationSupported,
+      tmEnabled: runtime.textMagnificationEnabled,
+      tmSettings: { enabled: runtime.textMagnificationEnabled, scale: runtime.textMagnificationScale }
+    };
     window.dispatchEvent(new CustomEvent("sharp-life-portal:runtime-change", { detail: publicRuntime() }));
+    window.dispatchEvent(new CustomEvent("sharp-life-portal:accessibility-ready", { detail: window.SharpLifePortalAccessibility }));
   }
 
   function applyDeviceDetail(detail) {
@@ -111,13 +156,13 @@
 
   function installAccessibilityListeners(accessibility) {
     if (typeof accessibility.onTTSSettingsChange === "function") {
-      accessibility.onTTSSettingsChange(function (settings) {
+      unsubscribeTTS = accessibility.onTTSSettingsChange(function (settings) {
         applyTTSSettings(settings, runtime.ttsSupported);
         scheduleScreenRead(100);
       });
     }
     if (typeof accessibility.onTTSConfigurationChange === "function") {
-      accessibility.onTTSConfigurationChange(function (configuration) {
+      unsubscribeTTSConfiguration = accessibility.onTTSConfigurationChange(function (configuration) {
         var rate = firstNumber(configuration, ["rate", "speechRate", "speed"]);
         var volume = firstNumber(configuration, ["volume", "speechVolume"]);
         var patch = {};
@@ -127,12 +172,12 @@
       });
     }
     if (typeof accessibility.onTMSettingsChange === "function") {
-      accessibility.onTMSettingsChange(function (settings) {
+      unsubscribeTM = accessibility.onTMSettingsChange(function (settings) {
         applyTMSettings(settings, runtime.textMagnificationSupported);
       });
     }
     if (typeof accessibility.onTMConfigurationChange === "function") {
-      accessibility.onTMConfigurationChange(function (configuration) {
+      unsubscribeTMConfiguration = accessibility.onTMConfigurationChange(function (configuration) {
         var scale = firstNumber(configuration, ["scale", "zoom", "magnification"]);
         if (scale !== null) publishRuntime({ textMagnificationScale: scale });
       });
@@ -145,21 +190,40 @@
       applyDeviceDetail(window.SharpLifePortalDevice);
       window.addEventListener("sharp-life-portal:device-ready", function (event) { applyDeviceDetail(event.detail); });
 
-      if (!window.TitanSDK || !window.TitanSDK.accessibility) {
-        var browserTTS = Boolean(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function");
+      var testSettings = localTestSettings();
+      if (testSettings) {
         publishRuntime({
-          source: "browser",
+          source: "local-test",
+          sdkAvailable: false,
+          ttsSupported: true,
+          ttsEnabled: testSettings.ttsEnabled,
+          ttsDriver: testSettings.ttsEnabled ? "browser" : "off",
+          speechRate: testSettings.speechRate,
+          speechVolume: testSettings.speechVolume,
+          textMagnificationSupported: true,
+          textMagnificationEnabled: testSettings.tmEnabled,
+          textMagnificationScale: testSettings.tmScale
+        });
+        return runtime;
+      }
+
+      await waitForTitanSDK(3000);
+
+      if (!window.TitanSDK || !window.TitanSDK.accessibility) {
+        publishRuntime({
+          source: "unavailable",
           sdkAvailable: false,
           country: runtime.country === "unknown" ? localeCountry() : runtime.country,
-          ttsSupported: browserTTS,
-          ttsEnabled: browserTTS,
-          ttsDriver: browserTTS ? "browser" : "off"
+          ttsSupported: false,
+          ttsEnabled: false,
+          ttsDriver: "off"
         });
         return runtime;
       }
 
       try {
         var titan = window.TitanSDK;
+        if (titan.isReady && typeof titan.isReady.then === "function") await titan.isReady;
         sdkAccessibility = titan.accessibility;
         var info = window.SharpLifePortalDevice;
         if (!info && titan.deviceInfo && typeof titan.deviceInfo.getDeviceInfo === "function") {
@@ -354,6 +418,11 @@
     document.addEventListener("focusin", handleFocus, true);
     observeVisibleContent();
     initializeRuntime().then(function () { scheduleScreenRead(120); });
+    window.addEventListener("beforeunload", function () {
+      [unsubscribeTTS, unsubscribeTTSConfiguration, unsubscribeTM, unsubscribeTMConfiguration].forEach(function (unsubscribe) {
+        if (typeof unsubscribe === "function") unsubscribe();
+      });
+    });
     window.SharpPortalTTS = {
       getVisibleTextLines: visibleTextLines,
       readVisibleScreen: function () { readVisibleScreen(true); },
