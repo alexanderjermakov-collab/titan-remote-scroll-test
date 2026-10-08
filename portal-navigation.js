@@ -18,6 +18,7 @@
     "[tabindex]:not([tabindex='-1'])"
   ].join(",");
   var EXIT_COPY = {
+    tr: ["Sharp Life Portal kapatılsın mı?", "İptal", "Kapat"],
     bg: ["Да затворите ли Sharp Life Portal?", "Отказ", "Затвори"],
     ca: ["Voleu tancar Sharp Life Portal?", "Cancel·la", "Tanca"],
     cs: ["Chcete zavřít Sharp Life Portal?", "Zrušit", "Zavřít"],
@@ -48,6 +49,7 @@
     uk: ["Закрити Sharp Life Portal?", "Скасувати", "Закрити"]
   };
   var ABOUT_COPY = {
+    tr: ["Hakkında", "Sürüm numarası", "Yayın tarihi", "Sahibi", "Tüm hakları saklıdır.", "Geri"],
     bg: ["Относно", "Номер на версията", "Дата на издаване", "Собственик", "Всички права запазени.", "Назад"],
     ca: ["Quant a", "Número de versió", "Data de llançament", "Propietari", "Tots els drets reservats.", "Enrere"],
     cs: ["O aplikaci", "Číslo verze", "Datum vydání", "Vlastník", "Všechna práva vyhrazena.", "Zpět"],
@@ -78,6 +80,7 @@
     uk: ["Про портал", "Номер версії", "Дата випуску", "Власник", "Усі права захищено.", "Назад"]
   };
   var ABOUT_RUNTIME_COPY = {
+    tr: ["Dil", "Ülke", "Metinden konuşmaya", "Konuşma hızı", "Konuşma ses düzeyi", "Metin büyütme", "Açık", "Kapalı", "Kullanılamıyor"],
     bg: ["Език", "Държава", "Синтез на реч", "Скорост на речта", "Сила на звука", "Увеличаване на текста", "Вкл.", "Изкл.", "Няма данни"],
     ca: ["Idioma", "País", "Text a veu", "Velocitat de parla", "Volum de veu", "Ampliació de text", "Activat", "Desactivat", "No disponible"],
     cs: ["Jazyk", "Země", "Převod textu na řeč", "Rychlost řeči", "Hlasitost řeči", "Zvětšení textu", "Zapnuto", "Vypnuto", "Není k dispozici"],
@@ -114,6 +117,7 @@
     var value = String(document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
     if (EXIT_COPY[value]) return value;
     value = value.split("-")[0];
+    if (value === "nb" || value === "nn") value = "no";
     return EXIT_COPY[value] ? value : "en";
   }
 

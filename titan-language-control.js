@@ -6,12 +6,12 @@
     bg: true, ca: true, cs: true, da: true, de: true, el: true, en: true,
     es: true, et: true, fi: true, fr: true, hr: true, hu: true, it: true,
     lt: true, lv: true, nl: true, no: true, pl: true, pt: true, "pt-pt": true,
-    ro: true, ru: true, sk: true, sl: true, sr: true, sv: true, uk: true
+    ro: true, ru: true, sk: true, sl: true, sr: true, sv: true, tr: true, uk: true
   };
 
   function normalizeLanguage(value) {
     var raw = String(value || "").trim().toLowerCase().replace(/_/g, "-");
-    var aliases = { cz: "cs", dk: "da", gr: "el", nb: "no", nn: "no", sp: "es", ua: "uk" };
+    var aliases = { cz: "cs", dk: "da", gr: "el", nb: "no", nn: "no", nor: "no", tur: "tr", sp: "es", ua: "uk" };
 
     if (aliases[raw]) raw = aliases[raw];
     if (raw.indexOf("pt-pt") === 0) return "pt-pt";
@@ -80,7 +80,8 @@
   function updateInstructionManual(language, version) {
     var manual = document.getElementById("instructionmanual");
     if (!manual) return null;
-    var manualLanguage = language === "pt-pt" ? "pt" : language;
+    // No Turkish manual is bundled: keep the existing English manual accessible.
+    var manualLanguage = language === "tr" ? "en" : language === "pt-pt" ? "pt" : language;
     var url = new URL("../manual/" + version + "/" + encodeURIComponent(manualLanguage) + "/", window.location.href);
     url.searchParams.set("portalLang", language);
     manual.setAttribute("href", url.toString());

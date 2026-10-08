@@ -438,14 +438,14 @@
     function loadModalTranslations() {
       if (window.SharpPortalModalLocalization) { initialize(); return; }
       var modalLocalization = document.createElement("script");
-      modalLocalization.src = new URL("portal-modal-i18n.js", portalRoot).toString();
+      modalLocalization.src = new URL("portal-modal-i18n.js?v=8.0.9-l10n", portalRoot).toString();
       modalLocalization.onload = initialize;
       modalLocalization.onerror = initialize;
       document.head.appendChild(modalLocalization);
     }
     if (window.SharpPortalCardLocalization) { loadModalTranslations(); return; }
     var cardLocalization = document.createElement("script");
-    cardLocalization.src = new URL("portal-card-i18n.js", portalRoot).toString();
+    cardLocalization.src = new URL("portal-card-i18n.js?v=8.0.9-l10n", portalRoot).toString();
     cardLocalization.onload = loadModalTranslations;
     cardLocalization.onerror = loadModalTranslations;
     document.head.appendChild(cardLocalization);

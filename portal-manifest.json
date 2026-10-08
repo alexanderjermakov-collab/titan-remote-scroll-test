@@ -171,6 +171,11 @@
       "htmlLanguage": "ca",
       "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=ca",
       "publishedPath": "/ca/"
+    },
+    {
+      "code": "tr",
+      "htmlLanguage": "tr-TR",
+      "publishedPath": "/tr/"
     }
   ],
   "localizedAssets": [
