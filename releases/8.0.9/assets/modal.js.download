@@ -1,0 +1,459 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const contentElements = document.querySelectorAll(".content");
+    const modal = document.getElementById("modal");
+    const homepageApp = document.querySelector(".homepage-app");
+  
+    // Initialize modal with modal-off class
+    if (modal) {
+        modal.classList.add('modal-off');
+    }
+  
+    if (homepageApp) {
+        homepageApp.style.display = "grid";
+    }
+
+    // A browser Back navigation can restore this page from the back-forward cache.
+    // Always restore the complete Portal Home UI when that happens.
+    window.addEventListener("pageshow", () => {
+        if (homepageApp) {
+            homepageApp.style.display = "grid";
+            homepageApp.classList.remove('modal-opened');
+        }
+        if (modal) {
+            modal.classList.remove('modal-on');
+            modal.classList.add('modal-off');
+            modal.removeAttribute('data-modal-id');
+            modal.style.backgroundImage = '';
+        }
+    });
+  
+    if (contentElements.length > 0) {
+        contentElements[0].setAttribute("tabindex", "0");
+        contentElements[0].focus();
+    }
+  
+    // Check if modal element exists before setting up event listeners
+    if (!modal) {
+        console.error('Modal element not found. Make sure #modal exists in the HTML.');
+        return;
+    }
+
+    contentElements.forEach((content) => {
+        // Handle anchor tags differently - they're naturally focusable
+        if (content.tagName.toLowerCase() === 'a') {
+            // Anchor tags are naturally focusable, but ensure they can receive focus
+            if (!content.hasAttribute('tabindex')) {
+                content.setAttribute('tabindex', '0');
+            }
+        } else {
+            content.setAttribute("tabindex", "0");
+        }
+        
+        content.addEventListener("click", (event) => {
+            // Get content ID and find corresponding modal content element
+            const contentId = content.getAttribute('id');
+            let modalSource = null;
+            
+            // Try new structure first: separate element with {id}-modal
+            if (contentId) {
+                modalSource = document.getElementById(`${contentId}-modal`);
+            }
+            
+            // Fallback to old structure: .hidden-content inside .content
+            if (!modalSource) {
+                modalSource = content.querySelector(".hidden-content");
+            }
+            
+            // For anchor tags without modals, allow default navigation
+            if (!modalSource && content.tagName.toLowerCase() === 'a') {
+                return; // Let the anchor navigate naturally
+            }
+            
+            if (!modalSource) {
+                console.warn(`No modal content found for content element with id: ${contentId || 'none'}`);
+                return; // No modal content found
+            }
+            
+            // Prevent default for elements with modals
+            event.preventDefault();
+            
+            // Get background image and ID from the source element
+            const backgroundImage = modalSource.getAttribute('data-bg');
+            const uniqueId = modalSource.getAttribute('id') || `${contentId}-modal`;
+  
+            // Set modal attributes
+            modal.setAttribute('data-modal-id', uniqueId);
+            if (backgroundImage) {
+                modal.style.backgroundImage = `url(${backgroundImage})`;
+            }
+  
+            // Clear existing content
+            while (modal.firstChild) {
+                modal.firstChild.remove();
+            }
+  
+            // Clone and append only the children (not the wrapper div itself)
+            const children = Array.from(modalSource.children);
+            children.forEach(child => {
+                modal.appendChild(child.cloneNode(true));
+            });
+  
+            modal.classList.remove('modal-off');
+            modal.classList.add('modal-on');
+  
+            const closeButton = modal.querySelector(".close");
+            if (closeButton) {
+                closeButton.addEventListener("click", () => {
+                    modal.classList.remove('modal-on');
+                    modal.classList.add('modal-off');
+                    closeButton.blur();
+                    modal.removeAttribute('data-modal-id');
+                    modal.style.backgroundImage = '';
+                    if (homepageApp) {
+                        homepageApp.classList.remove('modal-opened');
+                    }
+                });
+            }
+  
+            const btnLink = modal.querySelector(".btnlink");
+            if (btnLink) {
+                btnLink.focus();
+            } else if (closeButton) {
+                closeButton.focus();
+            }
+  
+            if (homepageApp) {
+                homepageApp.classList.add('modal-opened');
+            }
+        });
+    });
+  
+    window.addEventListener("click", (event) => {
+        // Only close if clicking the backdrop (not the content inside)
+        if (event.target == modal) {
+            modal.classList.remove('modal-on');
+            modal.classList.add('modal-off');
+            const closeButton = modal.querySelector(".close");
+            if (closeButton) {
+                closeButton.blur();
+            }
+            modal.removeAttribute('data-modal-id');
+            modal.style.backgroundImage = '';
+            if (homepageApp) {
+                homepageApp.classList.remove('modal-opened');
+            }
+        }
+    });
+  
+    document.addEventListener('focus', function trapFocus(event) {
+        if (!modal.classList.contains('modal-on')) {
+            return;
+        }
+  
+        const focusableModalElements = modal.querySelectorAll('a, button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select, [tabindex="0"]');
+        const firstElement = focusableModalElements[0];
+        const lastElement = focusableModalElements[focusableModalElements.length - 1];
+  
+        if (event.shiftKey && document.activeElement === firstElement) {
+            lastElement.focus();
+            event.preventDefault();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+            firstElement.focus();
+            event.preventDefault();
+        }
+    }, true);
+
+    // Spatial Navigation for TV Remote Control
+    // Calculate grid positions for spatial navigation
+    // Simulates CSS Grid auto-placement algorithm
+    function calculateGridPositions() {
+        const gridColumns = 3; // 3-column grid as per CSS
+        const positions = [];
+        const containerApp = document.querySelector('.container-app');
+        
+        if (!containerApp) {
+            return positions;
+        }
+
+        // Get all content elements in DOM order (as they appear in the grid)
+        const allContentElements = Array.from(containerApp.querySelectorAll('.content'));
+        
+        // Track grid layout: simulate CSS Grid auto-placement
+        // Each row is an array tracking which columns are occupied
+        const gridLayout = [];
+        
+        allContentElements.forEach((element) => {
+            // Check if element spans 2 columns
+            const spansTwo = element.classList.contains('span2');
+            const colSpan = spansTwo ? 2 : 1;
+            
+            // Find the first row where this element can fit
+            let placed = false;
+            let targetRow = 0;
+            let targetCol = 0;
+            
+            // Try to place in existing rows first
+            for (let row = 0; row < gridLayout.length; row++) {
+                const rowOccupied = gridLayout[row] || [];
+                
+                // Try to find a column where this element fits
+                for (let col = 0; col <= gridColumns - colSpan; col++) {
+                    let canFit = true;
+                    
+                    // Check if all required columns are free
+                    for (let checkCol = col; checkCol < col + colSpan; checkCol++) {
+                        if (rowOccupied[checkCol]) {
+                            canFit = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canFit) {
+                        targetRow = row;
+                        targetCol = col;
+                        placed = true;
+                        break;
+                    }
+                }
+                
+                if (placed) break;
+            }
+            
+            // If couldn't place in existing rows, create new row
+            if (!placed) {
+                targetRow = gridLayout.length;
+                targetCol = 0;
+            }
+            
+            // Ensure row array exists
+            if (!gridLayout[targetRow]) {
+                gridLayout[targetRow] = [];
+            }
+            
+            // Mark columns as occupied
+            for (let col = targetCol; col < targetCol + colSpan; col++) {
+                gridLayout[targetRow][col] = true;
+            }
+            
+            positions.push({
+                element: element,
+                row: targetRow,
+                col: targetCol,
+                colSpan: colSpan
+            });
+        });
+        
+        return positions;
+    }
+
+    // Get target element for spatial navigation
+    function getSpatialTarget(currentElement, direction) {
+        // Don't navigate if modal is open
+        if (modal && modal.classList.contains('modal-on')) {
+            return null;
+        }
+        
+        const positions = calculateGridPositions();
+        if (positions.length === 0) {
+            return null;
+        }
+        
+        // Find current element's position - handle both direct element match and ID match
+        let currentIndex = positions.findIndex(pos => pos.element === currentElement);
+        
+        // Fallback: try to find by ID if direct match fails (for dynamically loaded elements)
+        if (currentIndex === -1 && currentElement.id) {
+            currentIndex = positions.findIndex(pos => 
+                pos.element.id === currentElement.id || 
+                pos.element === document.getElementById(currentElement.id)
+            );
+        }
+        
+        if (currentIndex === -1) {
+            return null;
+        }
+        
+        const current = positions[currentIndex];
+        let targetIndex = -1;
+        
+        switch(direction) {
+            case 'ArrowLeft':
+                // Find element in same row, previous column
+                // Get all elements in the same row that end before current starts
+                const sameRowLeft = positions.filter(pos => 
+                    pos.row === current.row && 
+                    pos.col + pos.colSpan <= current.col
+                );
+                
+                if (sameRowLeft.length > 0) {
+                    // Find the rightmost one (closest to current)
+                    const rightmost = sameRowLeft.reduce((prev, curr) => 
+                        (curr.col + curr.colSpan) > (prev.col + prev.colSpan) ? curr : prev
+                    );
+                    targetIndex = positions.indexOf(rightmost);
+                } else if (current.row > 0) {
+                    // Wrap to last element of previous row
+                    const prevRowElements = positions.filter(pos => pos.row === current.row - 1);
+                    if (prevRowElements.length > 0) {
+                        const rightmostPrev = prevRowElements.reduce((prev, curr) => 
+                            (curr.col + curr.colSpan) > (prev.col + prev.colSpan) ? curr : prev
+                        );
+                        targetIndex = positions.indexOf(rightmostPrev);
+                    }
+                }
+                break;
+                
+            case 'ArrowRight':
+                // Find element in same row, next column
+                // Get all elements in the same row that start after current ends
+                const sameRowRight = positions.filter(pos => 
+                    pos.row === current.row && 
+                    pos.col >= current.col + current.colSpan
+                );
+                
+                if (sameRowRight.length > 0) {
+                    // Find the leftmost one (closest to current)
+                    const leftmost = sameRowRight.reduce((prev, curr) => 
+                        curr.col < prev.col ? curr : prev
+                    );
+                    targetIndex = positions.indexOf(leftmost);
+                } else {
+                    // Wrap to first element of next row
+                    const nextRowElements = positions.filter(pos => pos.row === current.row + 1);
+                    if (nextRowElements.length > 0) {
+                        const leftmostNext = nextRowElements.reduce((prev, curr) => 
+                            curr.col < prev.col ? curr : prev
+                        );
+                        targetIndex = positions.indexOf(leftmostNext);
+                    }
+                }
+                break;
+                
+            case 'ArrowUp':
+                // Find element in previous row, same or nearest column
+                const prevRowElements = positions.filter(pos => pos.row === current.row - 1);
+                if (prevRowElements.length > 0) {
+                    // Calculate current element's column range
+                    const currentColStart = current.col;
+                    const currentColEnd = current.col + current.colSpan - 1;
+                    
+                    // Find element with best column overlap or closest distance
+                    let bestMatch = prevRowElements[0];
+                    let bestScore = -1;
+                    
+                    prevRowElements.forEach(pos => {
+                        const posColStart = pos.col;
+                        const posColEnd = pos.col + pos.colSpan - 1;
+                        
+                        // Calculate overlap
+                        const overlapStart = Math.max(currentColStart, posColStart);
+                        const overlapEnd = Math.min(currentColEnd, posColEnd);
+                        const overlap = Math.max(0, overlapEnd - overlapStart + 1);
+                        
+                        // Score: prioritize overlap, then closest column start
+                        const score = overlap * 1000 - Math.abs(pos.col - current.col);
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMatch = pos;
+                        }
+                    });
+                    
+                    targetIndex = positions.indexOf(bestMatch);
+                }
+                break;
+                
+            case 'ArrowDown':
+                // Find element in next row, same or nearest column
+                const nextRowElements = positions.filter(pos => pos.row === current.row + 1);
+                if (nextRowElements.length > 0) {
+                    // Calculate current element's column range
+                    const currentColStart = current.col;
+                    const currentColEnd = current.col + current.colSpan - 1;
+                    
+                    // Find element with best column overlap or closest distance
+                    let bestMatch = nextRowElements[0];
+                    let bestScore = -1;
+                    
+                    nextRowElements.forEach(pos => {
+                        const posColStart = pos.col;
+                        const posColEnd = pos.col + pos.colSpan - 1;
+                        
+                        // Calculate overlap
+                        const overlapStart = Math.max(currentColStart, posColStart);
+                        const overlapEnd = Math.min(currentColEnd, posColEnd);
+                        const overlap = Math.max(0, overlapEnd - overlapStart + 1);
+                        
+                        // Score: prioritize overlap, then closest column start
+                        const score = overlap * 1000 - Math.abs(pos.col - current.col);
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMatch = pos;
+                        }
+                    });
+                    
+                    targetIndex = positions.indexOf(bestMatch);
+                }
+                break;
+        }
+        
+        if (targetIndex !== -1 && targetIndex < positions.length) {
+            return positions[targetIndex].element;
+        }
+        
+        return null;
+    }
+
+    // Add keyboard event listeners for spatial navigation
+    // Re-query content elements to ensure we get all of them including anchor tags
+    const allContentElementsForNav = document.querySelectorAll('.container-app .content');
+    
+    allContentElementsForNav.forEach((content) => {
+        // Ensure all content elements are focusable (including anchor tags)
+        if (content.tagName.toLowerCase() === 'a') {
+            // Anchor tags are naturally focusable, but ensure they can receive focus
+            if (!content.hasAttribute('tabindex')) {
+                content.setAttribute('tabindex', '0');
+            }
+        } else {
+            content.setAttribute('tabindex', '0');
+        }
+        
+        content.addEventListener('keydown', (event) => {
+            // Only handle arrow keys
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+                return;
+            }
+            
+            // Don't navigate if modal is open
+            if (modal && modal.classList.contains('modal-on')) {
+                return;
+            }
+            
+            // Don't navigate if homepage app is not visible
+            if (homepageApp && homepageApp.style.display === 'none') {
+                return;
+            }
+            
+            const targetElement = getSpatialTarget(content, event.key);
+            
+            if (targetElement) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Ensure target is focusable
+                if (targetElement.tagName.toLowerCase() === 'a') {
+                    // Anchor tags are naturally focusable
+                    if (!targetElement.hasAttribute('tabindex')) {
+                        targetElement.setAttribute('tabindex', '0');
+                    }
+                } else {
+                    targetElement.setAttribute('tabindex', '0');
+                }
+                targetElement.focus();
+            }
+        });
+    });
+  });
+

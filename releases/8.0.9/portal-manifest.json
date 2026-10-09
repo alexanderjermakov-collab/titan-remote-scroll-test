@@ -1,0 +1,208 @@
+{
+  "releaseVersion": "8.0.9",
+  "releaseDate": "2026-10-08",
+  "source": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/",
+  "retrieved": "2026-10-04",
+  "languages": [
+    {
+      "code": "en",
+      "htmlLanguage": "en-US",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=en",
+      "publishedPath": "/en/"
+    },
+    {
+      "code": "fr",
+      "htmlLanguage": "fr-FR",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=fr",
+      "publishedPath": "/fr/"
+    },
+    {
+      "code": "de",
+      "htmlLanguage": "de-DE",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=de",
+      "publishedPath": "/de/"
+    },
+    {
+      "code": "es",
+      "htmlLanguage": "es-ES",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=es",
+      "publishedPath": "/es/"
+    },
+    {
+      "code": "bg",
+      "htmlLanguage": "bg-BG",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=bg",
+      "publishedPath": "/bg/"
+    },
+    {
+      "code": "hr",
+      "htmlLanguage": "hr",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=hr",
+      "publishedPath": "/hr/"
+    },
+    {
+      "code": "cs",
+      "htmlLanguage": "cs-CZ",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=cs",
+      "publishedPath": "/cs/"
+    },
+    {
+      "code": "da",
+      "htmlLanguage": "da-DK",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=da",
+      "publishedPath": "/da/"
+    },
+    {
+      "code": "nl",
+      "htmlLanguage": "nl-NL",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=nl",
+      "publishedPath": "/nl/"
+    },
+    {
+      "code": "et",
+      "htmlLanguage": "et",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=et",
+      "publishedPath": "/et/"
+    },
+    {
+      "code": "fi",
+      "htmlLanguage": "fi",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=fi",
+      "publishedPath": "/fi/"
+    },
+    {
+      "code": "el",
+      "htmlLanguage": "el",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=el",
+      "publishedPath": "/el/"
+    },
+    {
+      "code": "hu",
+      "htmlLanguage": "hu-HU",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=hu",
+      "publishedPath": "/hu/"
+    },
+    {
+      "code": "it",
+      "htmlLanguage": "it-IT",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=it",
+      "publishedPath": "/it/"
+    },
+    {
+      "code": "lv",
+      "htmlLanguage": "lv-LV",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=lv",
+      "publishedPath": "/lv/"
+    },
+    {
+      "code": "lt",
+      "htmlLanguage": "lt-LT",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=lt",
+      "publishedPath": "/lt/"
+    },
+    {
+      "code": "pl",
+      "htmlLanguage": "pl-PL",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=pl",
+      "publishedPath": "/pl/"
+    },
+    {
+      "code": "pt-pt",
+      "htmlLanguage": "pt-pt",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=pt-pt",
+      "publishedPath": "/pt-pt/"
+    },
+    {
+      "code": "ro",
+      "htmlLanguage": "ro-RO",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=ro",
+      "publishedPath": "/ro/"
+    },
+    {
+      "code": "ru",
+      "htmlLanguage": "ru-RU",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=ru",
+      "publishedPath": "/ru/"
+    },
+    {
+      "code": "sr",
+      "htmlLanguage": "sr-RS",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=sr",
+      "publishedPath": "/sr/"
+    },
+    {
+      "code": "sk",
+      "htmlLanguage": "sk-SK",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=sk",
+      "publishedPath": "/sk/"
+    },
+    {
+      "code": "sl",
+      "htmlLanguage": "sl-SI",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=sl",
+      "publishedPath": "/sl/"
+    },
+    {
+      "code": "sv",
+      "htmlLanguage": "sv-SE",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=sv",
+      "publishedPath": "/sv/"
+    },
+    {
+      "code": "no",
+      "htmlLanguage": "nb-NO",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=no",
+      "publishedPath": "/no/"
+    },
+    {
+      "code": "uk",
+      "htmlLanguage": "uk",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=uk",
+      "publishedPath": "/uk/"
+    },
+    {
+      "code": "pt",
+      "htmlLanguage": "pt",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=pt",
+      "publishedPath": "/pt/"
+    },
+    {
+      "code": "ca",
+      "htmlLanguage": "ca",
+      "sourceUrl": "https://data.umc-poland.com/sharp-smart-life-portal-ver7/?lang=ca",
+      "publishedPath": "/ca/"
+    },
+    {
+      "code": "tr",
+      "htmlLanguage": "tr-TR",
+      "publishedPath": "/tr/"
+    }
+  ],
+  "localizedAssets": [
+    "RP-TT100-2.jpg",
+    "RP-TT100-l-2.jpg",
+    "SUNREMO-logo_1w.png",
+    "ebike-2.jpg",
+    "ebike-l.jpg",
+    "min-led-l-1.jpg",
+    "mini-led-5.jpg",
+    "miniled_1_white-2-1.png",
+    "portal-qr-discover-app-com.png",
+    "portal-qr-social-app-com-1.png",
+    "q-range-2.jpg",
+    "q-range-l-2.jpg",
+    "qr-new_320.png",
+    "qr-new_ebike.png",
+    "qr-new_lp.png",
+    "qr-new_mini-led.png",
+    "qr-new_qrange.png",
+    "qr-new_solar.png",
+    "sbw320-l.jpg",
+    "sbw320-s-1.jpg",
+    "sharp-app-l.png",
+    "solar-remote-v2-1-1.jpg",
+    "solar-remote-v2-l.jpg",
+    "some.png",
+    "store-logos.png"
+  ]
+}
