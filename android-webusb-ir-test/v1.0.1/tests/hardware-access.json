@@ -1,0 +1,15 @@
+{
+  "version": "1.0.1",
+  "date": "2026-10-26",
+  "environment": "isolated Linux development runtime, not user's Windows host",
+  "adbVersion": "1.0.41 / platform-tools 37.0.1-15733141",
+  "connectedDevices": [],
+  "mdnsServices": [],
+  "connectEndpoint": "172.25.65.11:35653",
+  "connectResult": "failed to connect to '172.25.65.11:35653': Network is unreachable",
+  "hardwareStatus": "BLOCKED",
+  "remoteUiActions": 0,
+  "operatorIRRequests": 0,
+  "hardwareReceptionPass": false,
+  "hardwareRecoveryPass": false
+}

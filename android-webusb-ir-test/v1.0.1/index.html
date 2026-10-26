@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>Android WebUSB IR Blaster Test (PoC)</title>
+<style>
+*{box-sizing:border-box}body{font:16px system-ui,sans-serif;background:#101925;color:#e5edf8;margin:auto;padding:20px;max-width:1100px}h1{font-size:clamp(23px,5vw,34px);margin:10px 0}h2{font-size:19px}p{line-height:1.5}.card{background:#192638;border:1px solid #35445b;border-radius:12px;padding:16px;margin:14px 0}.warning{border-left:4px solid #f8c66a}button,select,textarea{font:inherit;border-radius:7px;border:1px solid #62738c;padding:11px;background:#23344b;color:inherit}button{cursor:pointer;margin:4px 6px 4px 0}button.primary{background:#14716d}button:disabled{opacity:.45;cursor:default}textarea{width:100%;min-height:85px}select{max-width:100%;width:100%;margin:8px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace;margin:0}#log{height:420px;overflow:auto;background:#0c121c;padding:12px}#log div{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace;border-bottom:1px solid #223047;padding:5px 0}#status{font-weight:650;color:#7bdbd0}summary{cursor:pointer}label{display:block;margin:10px 0}.muted{color:#bac7d9}a{color:#8dded8}
+</style></head><body>
+<h1>Android WebUSB IR Blaster Test <span class="muted">(PoC)</span></h1>
+<p>Прямой USB-тест · VID <b>045C</b> / PID <b>0195</b> · версия <b>1.0.1</b></p>
+<div class="card warning">Устойчивый приём v1.0.1 и восстановление аппаратно не подтверждены. Для проверки нужен реальный USB IR Blaster. Успешная отправка FE ещё не означает готовность приёмника.</div>
+<div class="card"><h2>Окружение</h2><pre id="environment"></pre><label for="notes">Модель телефона, Android, полная версия Chrome, OTG/кабель и заметки о прогоне</label><textarea id="notes" placeholder="Введите вручную: user-agent может содержать неполную версию ОС и браузера"></textarea></div>
+<div class="card"><p id="status" role="status" aria-live="polite">Проверка окружения…</p><button id="connect" class="primary">Подключить USB IR Blaster</button><button id="disconnect" disabled>Отключить</button><button id="reconnect" disabled>Программно переподключить</button><div id="choice" hidden><label for="candidate">Найдено несколько вариантов. Выберите конфигурацию / интерфейс / endpoints:</label><select id="candidate"></select><button id="use">Использовать выбранный вариант</button></div><p id="selected" class="muted">USB-интерфейс ещё не выбран.</p><button id="fc" disabled>Отправить FC</button><button id="fa" disabled>Отправить FA</button><button id="fe" disabled>Отправить FE</button><p id="counts"></p><details><summary>Все USB-дескрипторы (без серийного номера)</summary><pre id="descriptors"></pre></details></div>
+<div class="card"><h2>Диагностический журнал</h2><button id="export">Скачать журнал JSON</button><button id="clear">Очистить журнал</button><p id="limit" class="muted"></p><div id="log" tabindex="0" aria-label="Полные события TX/RX в HEX"></div></div>
+<details class="card"><summary>Порядок проверки и ограничения v1.0.1</summary>
+<p>Откройте страницу в Chrome Android через HTTPS, держите экран включённым. Подключение запрашивает VID 045C / PID 0195. FC отправляется через 250 мс, FE через 900 мс. Ответ FC/7001 распознаётся отдельно от FB и допускает один FA по исследованному профилю; значение XY и влияние handshake на приём требуют аппаратной проверки.</p>
+<p>После нажатия пульта ожидается FE с big-endian длиной. Только полный пакет допускает следующее FE через 60 мс. При ожидании начала ответа через 15 с появляется диагностика; повторный FE не отправляется. Частичный заголовок или payload: предупреждение после 2 с без прогресса, карантин после 10 с либо 30 с общей сборки. Завершающий 75 не означает полноту.</p>
+<p>Карантин сохраняет raw RX и блокирует протокольные TX. Кнопка «Программно переподключить» закрывает USB-сеанс и открывает ранее разрешённое устройство в новой generation. Это не сброс прошивки: успешное восстановление ИК необходимо проверить. Физическое отключение не выполняется автоматически.</p>
+<p>Сделайте 10 одиночных нажатий с интервалом ≥1 с, отдельное удержание, затем три программных переподключения с захватом. После ошибки сохраните JSON, переподключите программно и проверьте новые полные кадры. Не объявляйте PASS по одному close/open.</p>
+<p>Лимиты: RX/карантин 256 КиБ, payload 65535, журнал 5 МиБ со счётчиком вытеснений. Приёмочный прогон требует нулевых вытеснений. Декодеров, APK, автоматического firmware-reset и эвристического отсечения пакетов нет.</p></details>
+<script>
+'use strict';
+const VERSION='1.0.1', LIMIT=5*1024*1024, RX_LIMIT=256*1024;
+const $=id=>document.getElementById(id), start=performance.now();
+const environment={version:VERSION,url:location.href,origin:location.origin,isSecureContext:window.isSecureContext,webUSB:!!navigator.usb,userAgent:navigator.userAgent,language:navigator.language,startedUtc:new Date().toISOString()};
+$('environment').textContent=JSON.stringify(environment,null,2);
+const sessionMetadata=[];
+let session=null,generation=0,events=[],logBytes=0,evicted=0,seq=0,renderPending=false;
+const encoder=new TextEncoder();
+const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+function render(){renderPending=false;const box=$('log'),frag=document.createDocumentFragment();for(const e of events){const row=document.createElement('div');row.textContent=JSON.stringify(e);frag.appendChild(row);}box.replaceChildren(frag);box.scrollTop=box.scrollHeight;$('limit').textContent=`Журнал: ${logBytes.toLocaleString()} / ${LIMIT.toLocaleString()} байт · вытеснено событий: ${evicted}`;}
+function log(operation,fields={},s=session){const e={seq:++seq,timeUtc:new Date().toISOString(),elapsedMs:+(performance.now()-start).toFixed(3),stage:s?.stage||'environment',operation,connectionGeneration:s?.generation??generation,...fields};const size=encoder.encode(JSON.stringify(e)).length+1;while(events.length&&logBytes+size>LIMIT){const old=events.shift();logBytes-=encoder.encode(JSON.stringify(old)).length+1;evicted++;}events.push(e);logBytes+=size;if(!renderPending){renderPending=true;setTimeout(render,100);}return e;}
+function state(s,stage,message){if(s&&session!==s)return;if(s)s.stage=stage;$('status').textContent=`${stage}: ${message}`;}
+function active(s){return session===s&&s.active;}
+function buttons(){const ready=!!(session?.active&&session.ready&&!session.failed);$('connect').disabled=!!session;$('disconnect').disabled=!session;$('reconnect').disabled=!(session?.device&&session.ready&&!session.closing);for(const id of ['fc','fa','fe'])$(id).disabled=!ready||!session.parser.safeForCommand()||(id==='fe'&&!!session.awaitingIR);$('counts').textContent=session?`Сеанс ${session.generation} · полных FE: ${session.frames} · identify: ${session.identifySeen?'получен':'не получен'}`:'Нет активного сеанса';}
+function error(s,operation,e){log(operation,{status:'exception',errorName:e.name||'Error',errorMessage:e.message||String(e)},s);}
+function later(s,ms,fn,operation){const planned=performance.now()+ms;const id=setTimeout(()=>{s.timers.delete(id);if(!active(s)||s.failed)return;log(operation,{plannedElapsedMs:+(planned-start).toFixed(3),actualElapsedMs:+(performance.now()-start).toFixed(3)},s);Promise.resolve().then(fn).catch(e=>fail(s,operation,e));},ms);s.timers.add(id);return id;}
+function fail(s,operation,e){if(!active(s))return;error(s,operation,e);s.failed=true;for(const t of s.timers)clearTimeout(t);s.timers.clear();state(s,'error',`${operation}: ${e.name}: ${e.message}. Сохраните журнал и отключите сеанс.`);buttons();}
+function descriptors(d){return {vendorId:d.vendorId,productId:d.productId,manufacturerName:d.manufacturerName,productName:d.productName,deviceClass:d.deviceClass,deviceSubclass:d.deviceSubclass,deviceProtocol:d.deviceProtocol,usbVersionMajor:d.usbVersionMajor,usbVersionMinor:d.usbVersionMinor,deviceVersionMajor:d.deviceVersionMajor,deviceVersionMinor:d.deviceVersionMinor,configurations:d.configurations.map(c=>({configurationValue:c.configurationValue,configurationName:c.configurationName,interfaces:c.interfaces.map(i=>({interfaceNumber:i.interfaceNumber,alternates:i.alternates.map(a=>({alternateSetting:a.alternateSetting,interfaceClass:a.interfaceClass,interfaceSubclass:a.interfaceSubclass,interfaceProtocol:a.interfaceProtocol,interfaceName:a.interfaceName,endpoints:a.endpoints.map(e=>({endpointNumber:e.endpointNumber,direction:e.direction,type:e.type,packetSize:e.packetSize}))}))}))}))};}
+function candidates(d){const all=[];for(const c of d.configurations)for(const i of c.interfaces)for(const a of i.alternates){const ins=a.endpoints.filter(e=>e.type==='bulk'&&e.direction==='in'),outs=a.endpoints.filter(e=>e.type==='bulk'&&e.direction==='out');for(const input of ins)for(const output of outs)all.push({configurationValue:c.configurationValue,interfaceNumber:i.interfaceNumber,alternateSetting:a.alternateSetting,interfaceClass:a.interfaceClass,interfaceSubclass:a.interfaceSubclass,interfaceProtocol:a.interfaceProtocol,input:{endpointNumber:input.endpointNumber,direction:input.direction,type:input.type,packetSize:input.packetSize},output:{endpointNumber:output.endpointNumber,direction:output.direction,type:output.type,packetSize:output.packetSize},preferred:a.interfaceClass===2&&a.interfaceSubclass===2&&a.interfaceProtocol===1});}return all.sort((a,b)=>Number(b.preferred)-Number(a.preferred));}
+class Parser {
+ constructor(emit) {
+  this.emit=emit; this.buffer=new Uint8Array(); this.blocked=false;
+  this.startedAt=null; this.progress=0; this.warned=false; this.quarantineDropped=0;
+ }
+ incompleteFE(){return this.buffer.length>0&&this.buffer[0]===0xFE;}
+ safeForCommand(){return !this.blocked&&this.buffer.length===0;}
+ snapshot(now=performance.now()) {
+  const marker=this.buffer.length?this.buffer[0]:null;
+  const expected=this.buffer.length>=6?(marker===0xFE?6+this.buffer[4]*256+this.buffer[5]:6):null;
+  return {phase:this.blocked?'quarantine':!this.buffer.length?'idle':this.buffer.length<6?'header':'payload',marker:marker===null?null:marker.toString(16).toUpperCase(),bufferedBytes:this.buffer.length,expectedTotal:expected,missingBytes:expected===null?null:Math.max(0,expected-this.buffer.length),headerBytesMissing:this.buffer.length?Math.max(0,6-this.buffer.length):0,startedAtMs:this.startedAt,lastProgressMs:this.progress,idleMs:this.startedAt===null?0:now-this.progress,assemblyMs:this.startedAt===null?0:now-this.startedAt,quarantineDroppedBytes:this.quarantineDropped};
+ }
+ quarantine(type,now,extra={}) {
+  if(this.blocked)return;
+  const before=this.snapshot(now);this.blocked=true;
+  this.emit(type,{...before,phase:'quarantine',hex:hex(this.buffer),actualBytes:this.buffer.length,...extra,recovery:'explicit software reconnect required; firmware synchronization unconfirmed'});
+ }
+ retainQuarantined(bytes,now) {
+  const room=Math.max(0,RX_LIMIT-this.buffer.length),keep=bytes.slice(0,room);
+  const combined=new Uint8Array(this.buffer.length+keep.length);combined.set(this.buffer);combined.set(keep,this.buffer.length);this.buffer=combined;
+  this.quarantineDropped+=bytes.length-keep.length;
+  const candidates=[];for(let i=0;i+3<bytes.length&&candidates.length<16;i++){const b=bytes[i];if([0xFA,0xFB,0xFC,0xFE].includes(b)&&bytes[i+1]===b&&bytes[i+2]===b&&bytes[i+3]===b)candidates.push({offset:i,marker:b.toString(16).toUpperCase()});}
+  this.emit('quarantine-rx',{...this.snapshot(now),incomingBytes:bytes.length,retainedBytes:keep.length,notRetainedBytes:bytes.length-keep.length,candidates,candidatesAreMessages:false});
+ }
+ feed(bytes,now=performance.now()) {
+  if(!bytes.length)return;
+  // Enforce the deadline even if the periodic timer was throttled by Android.
+  this.tick(now);
+  if(this.blocked){this.retainQuarantined(bytes,now);return;}
+  if(this.buffer.length+bytes.length>RX_LIMIT){this.quarantine('overflow',now,{incomingBytes:bytes.length});this.retainQuarantined(bytes,now);return;}
+  if(!this.buffer.length)this.startedAt=now;
+  const merged=new Uint8Array(this.buffer.length+bytes.length);merged.set(this.buffer);merged.set(bytes,this.buffer.length);this.buffer=merged;this.progress=now;this.warned=false;
+  while(this.buffer.length) {
+   let pos=-1;
+   for(let i=0;i+3<this.buffer.length;i++){const b=this.buffer[i];if([0xFA,0xFB,0xFC,0xFE].includes(b)&&this.buffer[i+1]===b&&this.buffer[i+2]===b&&this.buffer[i+3]===b){pos=i;break;}}
+   if(pos<0){let keep=0;for(let n=1;n<=Math.min(3,this.buffer.length);n++){const tail=this.buffer.slice(-n);if([0xFA,0xFB,0xFC,0xFE].includes(tail[0])&&tail.every(b=>b===tail[0]))keep=n;}
+    const count=this.buffer.length-keep;if(count)this.emit('unknown',{hex:hex(this.buffer.slice(0,count)),actualBytes:count});this.buffer=this.buffer.slice(count);if(!keep)this.startedAt=null;break;}
+   if(pos){this.emit('unknown',{hex:hex(this.buffer.slice(0,pos)),actualBytes:pos});this.buffer=this.buffer.slice(pos);this.startedAt=now;}
+   if(this.buffer.length<6)break;
+   const marker=this.buffer[0],payload=marker===0xFE?this.buffer[4]*256+this.buffer[5]:0,total=6+payload;
+   if(this.buffer.length<total)break;
+   const message=this.buffer.slice(0,total);this.buffer=this.buffer.slice(total);this.startedAt=this.buffer.length?now:null;
+   this.emit(marker===0xFE?'FE':marker===0xFC?'FC':marker===0xFB?'FB':'FA',{hex:hex(message),actualBytes:total,payloadBytes:marker===0xFE?payload:undefined,xy:marker===0xFE?undefined:[message[4],message[5]],framingProfile:marker===0xFB?'legacy IR-Receiver FB/6':marker===0xFC?'observed FC/6':'IR-Receiver length profile'});
+  }
+  if(this.buffer.length)this.emit('assembly-progress',this.snapshot(now));
+ }
+ tick(now=performance.now()) {
+  if(this.blocked||!this.buffer.length||this.startedAt===null)return;
+  const info=this.snapshot(now);
+  if(info.idleMs>=10000||info.assemblyMs>=30000){this.quarantine('incomplete-timeout',now,{timeoutKind:info.idleMs>=10000?'assembly idle':'assembly absolute'});}
+  else if(info.idleMs>=2000&&!this.warned){this.warned=true;this.emit('incomplete-warning',{...info,hex:hex(this.buffer)});}
+ }
+}
+async function call(s,stage,operation,fn){if(!active(s))throw new DOMException('Сеанс закрыт','AbortError');state(s,stage,operation);log(operation,{status:'started'},s);try{const result=await fn();if(!active(s)){if(operation==='open'&&s.device.opened){try{await s.device.close();}catch(e){error(s,'stale open close',e);}}throw new DOMException('Завершение устаревшего сеанса','AbortError');}log(operation,{status:'ok'},s);return result;}catch(e){throw e;}}
+function send(s,command,reason) {
+ if(command===0xFE&&s.pendingFE){log('TX suppressed',{command:'FE',reason:'FE уже в очереди'},s);return s.tx;}
+ if(command===0xFE)s.pendingFE=true;
+ s.tx=s.tx.then(async()=>{
+  try {
+   if(!active(s)||s.failed||!s.ready)return;
+   if(!s.parser.safeForCommand()||(command===0xFE&&s.awaitingIR)){log('TX suppressed',{command:command.toString(16).toUpperCase(),reason:'Нет подтверждённой безопасной границы сообщения или FE уже ожидает ответа',parser:s.parser.snapshot()},s);return;}
+   if(command===0xFC){s.identifyAttempt++;s.autoFA=false;s.identifySeen=false;s.identifyResponseType=null;const attempt=s.identifyAttempt;
+    later(s,3000,()=>{if(!s.identifySeen&&s.identifyAttempt===attempt){log('identify deadline',{status:'warning',message:'Полный FC/FB-ответ не получен; FA не считается FC',identifyAttempt:attempt},s);state(s,'waiting for IR','Нет полного FC/FB-ответа; единственный reader активен');}},'identify deadline timer');}
+   const bytes=new Uint8Array(4).fill(command);
+   log('transferOut',{direction:'TX',endpointNumber:s.selected.output.endpointNumber,requestedBytes:4,hex:hex(bytes),status:'started',reason,identifyAttempt:s.identifyAttempt},s);
+   if(command===0xFE)s.awaitingIR={startedAt:performance.now(),warned:false};
+   const r=await s.device.transferOut(s.selected.output.endpointNumber,bytes);if(!active(s))return;
+   log('transferOut',{direction:'TX',endpointNumber:s.selected.output.endpointNumber,requestedBytes:4,actualBytes:r.bytesWritten,bytesWritten:r.bytesWritten,status:r.status,hex:hex(bytes)},s);
+   if(r.status!=='ok'||r.bytesWritten!==4)throw new Error(`transferOut status=${r.status}, bytesWritten=${r.bytesWritten}`);
+   if(command===0xFE&&s.awaitingIR){state(s,'waiting for IR','FE отправлена; ожидается начало ответа после нажатия пульта');}
+   buttons();
+  }catch(e){fail(s,'transferOut',e);}finally{if(command===0xFE)s.pendingFE=false;}
+ });return s.tx;
+}
+async function readLoop(s){log('reader start',{readerCount:1},s);while(active(s)&&!s.failed){try{log('transferIn',{direction:'RX',endpointNumber:s.selected.input.endpointNumber,requestedBytes:16384,status:'started'},s);const r=await s.device.transferIn(s.selected.input.endpointNumber,16384);if(!active(s))return;const bytes=r.data?new Uint8Array(r.data.buffer,r.data.byteOffset,r.data.byteLength).slice():new Uint8Array();log('transferIn',{direction:'RX',endpointNumber:s.selected.input.endpointNumber,requestedBytes:16384,actualBytes:bytes.length,status:r.status,hex:hex(bytes)},s);if(r.status!=='ok')throw new Error(`transferIn status=${r.status}`);if(bytes.length){s.parser.feed(bytes);buttons();}else await new Promise(resolve=>setTimeout(resolve,100));}catch(e){if(active(s))fail(s,'transferIn',e);return;}}}
+function parsed(s,type,data) {
+ if(!active(s))return;
+ log('parse '+type,{direction:'RX',...data},s);
+ if(type==='FC'||type==='FB') {
+  s.identifySeen=true;s.identifyResponseType=type;
+  log('identify response',{responseType:type,xy:data.xy,meaning:type==='FC'?'FC observed reply; XY meaning not manufacturer-confirmed':'legacy FB/6; not FC'},s);
+  const knownFC=type==='FC'&&data.xy[0]===0x70&&data.xy[1]===0x01;
+  if(s.identifyAttempt>0&&!s.autoFA&&(knownFC||type==='FB')){s.autoFA=true;send(s,0xFA,knownFC?'FC7001 profile acknowledgment (independent 045C:0195 traces; hardware validation pending)':'legacy FB follow-up from IR-Receiver');}
+  state(s,'initialization',`${type}-ответ получен: ${data.xy.map(x=>x.toString(16).padStart(2,'0')).join(' ')}; это не доказательство готовности ИК`);buttons();
+ }
+ if(type==='assembly-progress'&&data.marker==='FE')s.awaitingIR=null;
+ if(type==='FE') {
+  s.awaitingIR=null;s.frames++;buttons();
+  if(s.rearmTimer){clearTimeout(s.rearmTimer);s.timers.delete(s.rearmTimer);}
+  s.rearmTimer=later(s,60,()=>{s.rearmTimer=null;return send(s,0xFE,'next complete capture');},'rearm timer');
+ }
+ if(type==='incomplete-timeout'||type==='overflow') {
+  s.awaitingIR=null;s.captureBlocked=true;
+  if(s.rearmTimer){clearTimeout(s.rearmTimer);s.timers.delete(s.rearmTimer);s.rearmTimer=null;}
+  state(s,'quarantine',`Неполное сообщение: ${data.bufferedBytes}/${data.expectedTotal??'?'} байт. RX сохраняется. Нажмите «Программно переподключить»; восстановление прошивки не подтверждено.`);buttons();
+ }
+ if(type==='incomplete-warning')state(s,'RX',`Сборка ${data.phase}: ${data.bufferedBytes}/${data.expectedTotal??'?'} байт, нет прогресса 2 с`);
+}
+function tickSession(s,now=performance.now()) {
+ s.parser.tick(now);
+ if(s.awaitingIR&&!s.awaitingIR.warned&&now-s.awaitingIR.startedAt>=15000){s.awaitingIR.warned=true;log('FE start deadline',{status:'diagnostic',timeoutKind:'waiting for first FE byte',waitingMs:now-s.awaitingIR.startedAt,parser:s.parser.snapshot(now),message:'Начало FE не получено. До нажатия пульта это нормально. Новый FE автоматически не отправлен.'},s);}
+ buttons();
+}
+async function configure(s,c){if(!active(s)||s.configuring||s.ready)return;s.configuring=true;$('choice').hidden=true;try{s.selected=c;sessionMetadata.find(m=>m.connectionGeneration===s.generation).selected=c;log('selected descriptors',{selected:c},s);$('selected').textContent=JSON.stringify(c);if(s.device.configuration?.configurationValue!==c.configurationValue)await call(s,'configuration','selectConfiguration',()=>s.device.selectConfiguration(c.configurationValue));else log('configuration',{status:'ok',configurationValue:c.configurationValue,alreadyActive:true},s);await call(s,'claim','claimInterface',()=>s.device.claimInterface(c.interfaceNumber));s.claimed=true;const intf=s.device.configuration.interfaces.find(i=>i.interfaceNumber===c.interfaceNumber);if(intf.alternate.alternateSetting!==c.alternateSetting)await call(s,'claim','selectAlternateInterface',()=>s.device.selectAlternateInterface(c.interfaceNumber,c.alternateSetting));s.ready=true;s.readyAt=performance.now();state(s,'RX','Интерфейс открыт; запускается единственный reader');buttons();s.reader=readLoop(s);later(s,250,()=>send(s,0xFC,'startup'),'startup FC timer');later(s,900,()=>send(s,0xFE,'startup independent of identify'),'startup FE timer');const id=setInterval(()=>{if(active(s)&&!s.failed){tickSession(s);}},200);s.interval=id;}catch(e){fail(s,s.stage,e);}finally{s.configuring=false;}}
+async function connect(authorizedDevice=null){if(session)return;if(!environment.isSecureContext||!environment.webUSB){state(null,'error','Нужны HTTPS и navigator.usb в Chrome');return;}const s={generation:++generation,active:true,ready:false,failed:false,stage:'permission',timers:new Set(),tx:Promise.resolve(),frames:0,identifyAttempt:0,identifySeen:false,autoFA:false};session=s;s.parser=new Parser((t,d)=>parsed(s,t,d));buttons();state(s,'permission','Выберите USB IR Blaster и подтвердите доступ');log(authorizedDevice?'reuse authorized device':'requestDevice',{status:'started',filters:[{vendorId:0x045C,productId:0x0195}]},s);try{const d=authorizedDevice||await navigator.usb.requestDevice({filters:[{vendorId:0x045C,productId:0x0195}]});if(!active(s))return;s.device=d;log(authorizedDevice?'reuse authorized device':'requestDevice',{status:'ok',vendorId:d.vendorId,productId:d.productId},s);if(d.vendorId!==0x045C||d.productId!==0x0195)throw new Error('Неподходящий VID/PID');await call(s,'open','open',()=>d.open());s.descriptors=descriptors(d);sessionMetadata.push({connectionGeneration:s.generation,descriptors:s.descriptors});$('descriptors').textContent=JSON.stringify(s.descriptors,null,2);log('descriptors',{descriptors:s.descriptors},s);s.candidates=candidates(d);if(!s.candidates.length)throw new Error('Нет интерфейса с Bulk IN и OUT');if(s.candidates.length===1)await configure(s,s.candidates[0]);else{$('candidate').replaceChildren(...s.candidates.map((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c.preferred?'★ 02/02/01 · ':''}config ${c.configurationValue} · intf ${c.interfaceNumber} · alt ${c.alternateSetting} · IN ${c.input.endpointNumber} / OUT ${c.output.endpointNumber}`;return o;}));$('choice').hidden=false;state(s,'configuration','Требуется явный выбор одного варианта');}}catch(e){if(active(s)){if(e.name==='NotFoundError'&&s.stage==='permission'){error(s,'requestDevice',e);state(s,'permission','Выбор отменён или подходящее устройство не выбрано');await disconnect('permission cancelled',true);}else fail(s,s.stage,e);}}}
+async function disconnect(reason='manual',preserveStatus=false){const s=session;if(!s||s.closing)return;s.closing=true;s.closeFailed=false;s.active=false;s.ready=false;for(const t of s.timers)clearTimeout(t);s.timers.clear();clearInterval(s.interval);$('choice').hidden=true;buttons();log('disconnect',{status:'started',reason,parser:s.parser.snapshot(),partialHex:hex(s.parser.buffer)},s);if(!preserveStatus)state(s,'disconnected','Закрытие USB-сеанса…');try{if(s.device?.opened){log('close',{status:'started',message:'close отменяет незавершённые transferIn и освобождает захваченные интерфейсы; FD опущен'},s);await s.device.close();log('close',{status:'ok'},s);}}catch(e){s.closeFailed=true;error(s,'close',e);}finally{if(session===s){if(s.closeFailed){s.closing=false;state(s,'error','USB close завершился ошибкой. Новый сеанс запрещён. Повторите «Отключить» и сохраните журнал.');}else{session=null;if(!preserveStatus)state(null,'disconnected','Сеанс закрыт. Для повторного теста нажмите «Подключить».');}buttons();}}}
+$('connect').onclick=()=>connect();$('reconnect').onclick=async()=>{const old=session;if(!old?.device||old.closing)return;const d=old.device;log('software reconnect requested',{message:'USB close/open; no firmware reset and no hardware recovery claim'},old);await disconnect('explicit software reconnect');if(!session&& !old.closeFailed)await connect(d);};$('disconnect').onclick=()=>disconnect();$('use').onclick=()=>{if(session)configure(session,session.candidates[Number($('candidate').value)]);};for(const [id,command]of [['fc',0xFC],['fa',0xFA],['fe',0xFE]])$(id).onclick=()=>{if(session)send(session,command,'manual');};
+$('clear').onclick=()=>{events=[];logBytes=0;evicted=0;log('log cleared',{message:'Предыдущие события удалены пользователем; соединение сохранено'});};
+$('export').onclick=()=>{const data={schema:'android-webusb-ir-log/1',environment,manualEnvironment:$('notes').value,exportedUtc:new Date().toISOString(),limits:{logBytes:LIMIT,rxBufferBytes:RX_LIMIT,maxPayloadBytes:65535},evictedEvents:evicted,retainedEventBytes:logBytes,sessions:sessionMetadata,selected:session?.selected,descriptors:session?.descriptors,protocolProfile:'FC7001 + legacy FB/6; FE BE length; quarantined timeout requires explicit reconnect',recoveryHardwareValidated:false,hardwareCompatibility:'v1.0.1 stable reception/recovery UNCONFIRMED until real-device acceptance',parserState:session?.parser.snapshot(),events};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`webusb-ir-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);};
+if(navigator.usb)navigator.usb.addEventListener('disconnect',e=>{if(session?.device===e.device)disconnect('physical USB disconnect');});
+document.addEventListener('visibilitychange',()=>log('visibilitychange',{visibilityState:document.visibilityState}));
+log('environment',{...environment});state(null,environment.isSecureContext&&environment.webUSB?'disconnected':'error',environment.isSecureContext&&environment.webUSB?'API доступен. Подключите USB IR Blaster.':'Нужны HTTPS и navigator.usb в Chrome; USB-действия отключены.');buttons();if(!environment.isSecureContext||!environment.webUSB)$('connect').disabled=true;
+</script></body></html>
+

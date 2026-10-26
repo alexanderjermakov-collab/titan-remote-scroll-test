@@ -1,0 +1,22 @@
+{
+  "smokePassed": false,
+  "mode": "Smoke",
+  "tests": [
+    {
+      "id": "RUN",
+      "status": "FAIL",
+      "evidence": "Expected exactly one matching paired Xiaomi, found 0. Check Wireless ADB/mDNS or specify -HardwareSerial. No phone UI actions performed.",
+      "timeUtc": "2026-10-26T10:58:10.6701313Z"
+    },
+    {
+      "id": "RECOVERY-AFTER-ASSEMBLY-ERROR",
+      "status": "BLOCKED",
+      "evidence": "No new real assembly-error recovery established; synthetic proof is insufficient",
+      "timeUtc": "2026-10-26T10:58:10.7114766Z"
+    }
+  ],
+  "fatal": "Expected exactly one matching paired Xiaomi, found 0. Check Wireless ADB/mDNS or specify -HardwareSerial. No phone UI actions performed.",
+  "version": "1.0.1",
+  "recoveryAfterAssemblyErrorConfirmed": false,
+  "hardwareAcceptanceConfirmed": false
+}
