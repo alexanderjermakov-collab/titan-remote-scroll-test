@@ -1,0 +1,23 @@
+PASS All PowerShell sources parse
+PASS Transport rejects empty evidence
+PASS Transport accepts open claim and successful FC FE
+PASS TX started is not successful TX
+PASS Short write status=ok still fails
+PASS FB requires successful FA
+PASS FA follow-up evidence
+PASS Evicted log fails acceptance
+PASS Old generation cannot satisfy new connection
+PASS Reject USB status exception
+PASS Reject USB status stall
+PASS Reject USB status babble
+PASS Split raw RX proves one FE
+PASS Parser event without raw RX is rejected
+PASS Wrong declared FE length is rejected
+PASS One RX record cannot prove two identical frames
+PASS Two identical raw frames are distinct captures
+PASS Empty FE is not IR evidence
+PASS Native process wrapper captures output and failure
+PASS Wireless discovery uses TLS connect, caches identity and refuses ambiguity
+PASS Runner Smoke failure writes report and blocks USB tests
+
+21 passed; 0 failed
